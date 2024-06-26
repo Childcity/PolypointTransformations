@@ -1,13 +1,8 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-#include <set>
-
-#include <utils/MetaUtils.h>
 
 int main(int argc, char *argv[])
 {
-	MetaUtils::RegisterMetaTypes();
-
 	QGuiApplication app(argc, argv);
 	app.setOrganizationName("Childcity");
 	app.setOrganizationDomain("childcity.com");

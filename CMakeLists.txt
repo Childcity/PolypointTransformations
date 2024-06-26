@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(PolydotTransformations VERSION 0.1 LANGUAGES CXX)
+project(PolydotTransformations VERSION 0.2 LANGUAGES CXX)
 
 set(APP_NAME PolydotTransformation)
 set(SOURCE_DIR src)
@@ -15,10 +15,8 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 6.6 REQUIRED COMPONENTS
-    Core
-    Quick
-    Quick3D
-    Qml
+    3DCore 3DInput 3DLogic 3DQuick 3DQuickExtras 3DRender
+    Core Gui Qml Quick
 )
 
 include_directories(${SOURCE_DIR})
@@ -51,12 +49,10 @@ qt_add_qml_module(${APP_NAME}
     VERSION 1.0
     QML_FILES ${qml_files}
     SOURCES ${sources}
-    RESOURCES
-        ${SOURCE_DIR}/res/logo.png
     RESOURCE_PREFIX "/"
     IMPORTS
         QtCore
-        QtQuick3D
+        QtQuick
 )
 
 set_target_properties(${APP_NAME} PROPERTIES
@@ -68,8 +64,14 @@ target_compile_definitions(${APP_NAME}
   $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>
 )
 target_link_libraries(${APP_NAME} PRIVATE
-    Qt6::Core
-    Qt6::Qml
-    Qt6::Quick
-    Qt6::Quick3D
+    Qt::3DCore
+    Qt::3DInput
+    Qt::3DLogic
+    Qt::3DQuick
+    Qt::3DQuickExtras
+    Qt::3DRender
+    Qt::Core
+    Qt::Gui
+    Qt::Qml
+    Qt::Quick
 )
