@@ -22,6 +22,7 @@ find_package(Qt6 6.6 REQUIRED COMPONENTS
 include_directories(${SOURCE_DIR})
 include_directories(${SOURCE_DIR}/controllers)
 include_directories(${SOURCE_DIR}/models)
+include_directories(${SOURCE_DIR}/geometry)
 include_directories(${SOURCE_DIR}/enums)
 include_directories(${SOURCE_DIR}/utils)
 
