@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Layouts
+import QtQuick.Scene3D
 
 import PolydotTransformationUi
 
@@ -12,26 +12,13 @@ ApplicationWindow {
 	width: 1280
 	height: 720
 
+	Scene3D {
+		anchors.fill: parent
+		anchors.margins: 8
 
-	MainController {
-		id: controller
-	}
+		aspects: ["input", "logic"]
+		cameraAspectRatioMode: Scene3D.AutomaticAspectRatio
 
-	Connections {
-        target: Application
-
-        function onStateChanged() {
-			if (Application.state === Qt.ApplicationActive) {
-			}
-        }
-    }
-
-	Settings {
-		location: "file:settings.ini"
-		category: "Main"
-	}
-
-	QtObject {
-		id: internal
+		SceneRoot {}
 	}
 }
