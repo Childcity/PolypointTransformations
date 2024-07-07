@@ -1,32 +1,8 @@
 #pragma once
 
-#include <QEntity>
 #include <QQmlEngine>
+#include <QSphereMesh>
 #include <QVector3D>
-
-class PointGeometry
-    : public Qt3DCore::QEntity
-    , public QVector3D
-{
-	Q_OBJECT
-	QML_NAMED_ELEMENT(PointGeometry)
-	Q_DISABLE_COPY(PointGeometry)
-
-	Q_PROPERTY(QVector3D point READ point WRITE setPoint NOTIFY pointChanged FINAL)
-
-public:
-	explicit PointGeometry() = default;
-	~PointGeometry() override = default;
-
-	QVector3D point() const;
-	void setPoint(QVector3D newPoint);
-
-signals:
-	void pointChanged();
-
-private:
-	void updateData();
-};
 
 struct StreightLine;
 
@@ -95,7 +71,7 @@ struct StreightLine
 	QVector3D intersect(StreightLine other);
 };
 
-class LineGeometry : public Qt3DCore::QEntity
+class LineGeometry : public QObject
 {
 	Q_OBJECT
 	QML_NAMED_ELEMENT(LineGeometry)
@@ -129,6 +105,5 @@ private:
 	Line m_line;
 };
 
-QDebug operator<<(QDebug, const PointGeometry &);
 QDebug operator<<(QDebug, const StreightLine &);
 QDebug operator<<(QDebug, const LineGeometry &);

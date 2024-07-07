@@ -110,8 +110,8 @@ StreightLine MathUtils::getPolydotTransformedLine(
 	}
 
 	for (const auto &[originalBasis, resultBasis] : std::views::zip(origBasises, resBasises)) {
-		const auto &origBasis = *originalBasis.value<PointGeometry *>();
-		const auto &resBasis = *resultBasis.value<PointGeometry *>();
+		const auto &origBasis = *originalBasis.value<QVector3D *>();
+		const auto &resBasis = *resultBasis.value<QVector3D *>();
 
 		double betta = baseLineNormilized.signDistanceToPoint(origBasis);
 		double betta2 = signDistanceToLine(origBasis, baseLine.p1, baseLineDirection);

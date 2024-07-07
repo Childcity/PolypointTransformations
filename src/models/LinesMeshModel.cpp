@@ -19,10 +19,6 @@ QHash<int, QByteArray> LinesMeshModel::roleNames() const
 
 int LinesMeshModel::rowCount(const QModelIndex &parent) const
 {
-	if (parent.isValid()) {
-		return 0;
-	}
-
 	return static_cast<int>(m_mesh.size());
 }
 

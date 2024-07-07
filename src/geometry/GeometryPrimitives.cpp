@@ -55,42 +55,6 @@ QString toString(QVector3D vec)
 
 } // namespace
 
-QVector3D PointGeometry::point() const
-{
-	return {x(), y(), z()};
-}
-
-void PointGeometry::setPoint(QVector3D newPoint)
-{
-	if (point() == newPoint) {
-		return;
-	}
-
-	setX(newPoint.x());
-	setY(newPoint.y());
-	setZ(newPoint.z());
-
-	emit pointChanged();
-	updateData();
-}
-
-void PointGeometry::updateData()
-{
-	constexpr auto pointsCount = 1;
-	QByteArray vertexes(pointsCount * cPointDataSize, Qt::Initialization::Uninitialized);
-
-	::setPoint(vertexes, 0, point());
-
-	// clear();
-	// setVertexData(vertexes);
-	// setStride(cPointDataSize);
-	// setBounds(point(), point());
-
-	// setPrimitiveType(PrimitiveType::Points);
-	// addAttribute(Attribute::PositionSemantic, 0, Attribute::F32Type);
-	// update();
-}
-
 Line Line::FromStreightLine(StreightLine line)
 {
 	if (line.isNull()) {
@@ -264,13 +228,6 @@ StreightLine LineGeometry::toStraightLine() const
 Line LineGeometry::toLine() const
 {
 	return m_line;
-}
-
-QDebug operator<<(QDebug dbg, const PointGeometry &geom)
-{
-	QDebugStateSaver stateSaver(dbg);
-	dbg.nospace() << QString("Point{%1}").arg(toString(geom));
-	return dbg;
 }
 
 QDebug operator<<(QDebug dbg, const StreightLine &sLine)

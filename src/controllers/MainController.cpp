@@ -8,6 +8,7 @@
 MainController::MainController(QObject *parent)
     : QObject(parent)
 {
+	m_basisPointsModel = std::make_unique<BasisPointsModel>();
 }
 
 MainController::~MainController() = default;
@@ -88,4 +89,9 @@ void MainController::setMeshType(MeshType meshType)
 	}
 	m_meshType = meshType;
 	emit meshTypeChanged();
+}
+
+BasisPointsModel *MainController::basisPointsModel() const
+{
+	return m_basisPointsModel.get();
 }

@@ -19,7 +19,8 @@ Entity {
 
 	OrbitCameraController {
 		camera: camera
-		linearSpeed: 200
+		linearSpeed: 300
+		lookSpeed: 400
 	}
 
 	components: [
@@ -28,7 +29,7 @@ Entity {
 				clearColor: "#2d2d2d"
 				camera: camera
 			}
-			pickingSettings.pickMethod: PickingSettings.LinePicking
+			pickingSettings.pickMethod: PickingSettings.PrimitivePicking
 		},
 		InputSettings {}
 	]
@@ -37,30 +38,15 @@ Entity {
 		id: mainController
 	}
 
-	Entity {
-		PhongMaterial {
-			id: pixMat
-			ambient: "red"
-		}
-
-		Transform {
-			id: pixTr
-			rotationX: 90
-		}
-
-		PlaneMesh {
-			id: pixMesh
-			width: 1
-			height: 1
-			meshResolution: Qt.size(2, 2)
-		}
-
-		components: [pixMat, pixTr, pixMesh]
+	PolydotBasisPoints {
+		model: mainController.basisPointsModel
 	}
+
+	CoordinatesHelper {}
 
 	PolydotMeshList {
 		model: mainController.meshListModel
-		color: "lightgreen"
+		color: "yellow"
 	}
 
 	Connections {
