@@ -58,63 +58,18 @@ Entity {
 		components: [pixMat, pixTr, pixMesh]
 	}
 
-	NodeInstantiator {
-		asynchronous: true
+	PolydotMeshList {
+		model: mainController.meshListModel
+		color: "lightgreen"
+	}
 
-		model: 5
+	Connections {
+		target: Application
 
-		delegate: Entity {
-			objectName: "LINE 1"
-
-			PhongMaterial {
-				id: lineMat
-				ambient: "lightgreen"
+		function onStateChanged() {
+			if (Application.state === Qt.ApplicationActive) {
+				mainController.loadMeshes();
 			}
-
-			Transform {
-				id: lineTr
-				scale: 100
-			}
-
-			Attribute {
-				id: positionAttribute
-				name: defaultPositionAttributeName
-				attributeType: Attribute.VertexAttribute
-				vertexBaseType: Attribute.Float
-				vertexSize: 3
-				byteStride: 3 * 4 // Float
-				byteOffset: 0
-				buffer: Buffer {
-					data: {
-						const arr = new Float32Array([
-							0, 0,  0,
-							1, 0,  0
-						]);
-						return arr.buffer;
-					}
-				}
-				count: 2
-			}
-
-			GeometryRenderer {
-				id: lineMesh
-				primitiveType: GeometryRenderer.Lines
-				geometry: Geometry {
-					attributes: [
-						positionAttribute
-					]
-				}
-			}
-
-			ObjectPicker {
-				id: linePicker
-				onClicked: pick => {
-					lineMat.ambient =  Qt.rgba(1, Math.random(), Math.random(), 1);
-					console.log(pick.entity, pick.distance);
-				}
-			}
-
-			components: [lineMat, lineTr, lineMesh, linePicker]
 		}
 	}
 }
