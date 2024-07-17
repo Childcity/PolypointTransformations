@@ -9,7 +9,7 @@ Entity {
 		id: points
 		model: root.model
 
-		asynchronous: true
+		//asynchronous: true
 
 		delegate: PointWithName {
 			text: name

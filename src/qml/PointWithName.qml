@@ -52,6 +52,8 @@ Entity {
 		SphereMesh {
 			id: mesh
 			radius: 0.3
+			rings: 5
+			slices: 5
 		}
 
 		components: [mat, mesh]

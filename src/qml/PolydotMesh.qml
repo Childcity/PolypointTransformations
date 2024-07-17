@@ -24,7 +24,7 @@ Entity {
 
 			PhongMaterial {
 				id: lineMat
-				ambient: root.color
+				ambient: selected ? Qt.rgba(1, Math.random(), Math.random(), 1) : root.color
 			}
 
 			Attribute {
@@ -63,8 +63,6 @@ Entity {
 				id: linePicker
 				onClicked: pick => {
 					model.selected = !selected;
-					lineMat.ambient = selected ? Qt.rgba(1, Math.random(), Math.random(), 1)
-											   : root.color;
 				}
 			}
 
