@@ -3,7 +3,7 @@
 #include <QLoggingCategory>
 #include <QVector3D>
 
-// #include <utils/GaussJordanElimination.h>
+#include <utils/GaussJordanElimination.h>
 
 namespace {
 
@@ -146,14 +146,13 @@ double StreightLine::signDistanceToPoint(QVector3D p) const
 
 QVector3D StreightLine::intersect(StreightLine other)
 {
-	// namespace gauss = gauss_jordan_elimination;
+	namespace gauss = gauss_jordan_elimination;
 	const auto [A1, B1, C1] = this->toTuple();
 	const auto [A2, B2, C2] = other.toTuple();
-	// const auto point = gauss::SolveSystem({
-	//									   {A1, B1, -C1},
-	//									   {A2, B2, -C2},
-	//									   });
-	const auto point = std::vector<float>();
+	const auto point = gauss::SolveSystem({
+	    {A1, B1, -C1},
+	    {A2, B2, -C2},
+	});
 	assert(point.size() == 2);
 	return {toF(point[0]), toF(point[1]), 0};
 }
@@ -161,31 +160,11 @@ QVector3D StreightLine::intersect(StreightLine other)
 LineGeometry::LineGeometry(StreightLine line)
 {
 	m_line = Line::FromStreightLine(line);
-	updateData();
 }
 
 LineGeometry::LineGeometry(Line line)
     : m_line(std::move(line))
 {
-	updateData();
-}
-
-void LineGeometry::updateData()
-{
-	constexpr auto pointsCount = 2;
-	QByteArray vertexes(pointsCount * cPointDataSize, Qt::Uninitialized);
-
-	setPoint(vertexes, 0, m_line.p1);
-	setPoint(vertexes, 1, m_line.p2);
-
-	// clear();
-	// setVertexData(vertexes);
-	// setStride(cPointDataSize);
-	// setBounds(m_line.p1, m_line.p2);
-
-	// setPrimitiveType(PrimitiveType::Lines);
-	// addAttribute(Attribute::PositionSemantic, 0, Attribute::F32Type);
-	// update();
 }
 
 QVector3D LineGeometry::p1() const
@@ -201,7 +180,6 @@ void LineGeometry::setP1(QVector3D newP1)
 	m_line.p1 = newP1;
 
 	emit p1Changed();
-	updateData();
 }
 
 QVector3D LineGeometry::p2() const
@@ -217,7 +195,19 @@ void LineGeometry::setP2(QVector3D newP2)
 	m_line.p2 = newP2;
 
 	emit p2Changed();
-	updateData();
+}
+
+bool LineGeometry::selected() const
+{
+	return m_isSelected;
+}
+
+void LineGeometry::setSelected(bool selected)
+{
+	if (m_isSelected == selected) {
+		return;
+	}
+	m_isSelected = selected;
 }
 
 StreightLine LineGeometry::toStraightLine() const

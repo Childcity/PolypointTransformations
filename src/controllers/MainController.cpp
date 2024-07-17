@@ -8,7 +8,11 @@
 MainController::MainController(QObject *parent)
     : QObject(parent)
 {
-	m_basisPointsModel = std::make_unique<BasisPointsModel>();
+	m_origBasises = std::make_unique<BasisPointsModel>();
+	m_resBasises = std::make_unique<BasisPointsModel>();
+	connect(m_resBasises.get(), &BasisPointsModel::dataChanged, this, [this] {
+		applyPolydotTransformations(m_origBasises->rawData(), m_resBasises->rawData());
+	});
 }
 
 MainController::~MainController() = default;
@@ -93,5 +97,5 @@ void MainController::setMeshType(MeshType meshType)
 
 BasisPointsModel *MainController::basisPointsModel() const
 {
-	return m_basisPointsModel.get();
+	return m_resBasises.get();
 }

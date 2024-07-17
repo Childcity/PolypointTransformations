@@ -2,6 +2,8 @@
 
 #include <QAbstractListModel>
 
+#include <geometry/GeometryPrimitives.h>
+
 class BasisPointsModel : public QAbstractListModel
 {
 	Q_OBJECT
@@ -21,6 +23,8 @@ public:
 	QVariant data(const QModelIndex &index, int role) const override;
 	bool setData(const QModelIndex &index, const QVariant &value, int role = PositionRole) override;
 
+	QVariantList rawData() const;
+
 private:
-	std::vector<QVector3D> m_basises;
+	BasisList m_basises;
 };

@@ -8,6 +8,8 @@ BasisPointsModel::BasisPointsModel(QObject *parent)
 	m_basises = {
 	    {0, 0, 0},
 	    {1, 1, 0},
+	    {1, 2, 0},
+	    {2, 1, 0},
 	};
 }
 
@@ -36,7 +38,7 @@ QVariant BasisPointsModel::data(const QModelIndex &index, int role) const
 
 	switch (role) {
 	case NameRole:
-		return std::format("B{}", row + 1).c_str();
+		return std::format("B{}`", row + 1).c_str();
 	case PositionRole:
 		return m_basises.at(row);
 	default:
@@ -59,4 +61,11 @@ bool BasisPointsModel::setData(const QModelIndex &index, const QVariant &value, 
 		return true;
 	};
 	return {};
+}
+
+QVariantList BasisPointsModel::rawData() const
+{
+	QVariantList res;
+	std::ranges::copy(m_basises, std::back_inserter(res));
+	return res;
 }

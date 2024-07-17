@@ -5,6 +5,11 @@
 #include <QVector3D>
 
 struct StreightLine;
+struct Line;
+
+using Mesh = std::vector<Line>;
+using MeshList = std::vector<Mesh>;
+using BasisList = std::vector<QVector3D>;
 
 struct Line
 {
@@ -17,9 +22,6 @@ struct Line
 
 	bool isNull() const;
 };
-
-using Mesh = std::vector<Line>;
-using MeshList = std::vector<Mesh>;
 
 struct StreightLine
 {
@@ -92,6 +94,9 @@ public:
 	QVector3D p2() const;
 	void setP2(QVector3D newP2);
 
+	bool selected() const;
+	void setSelected(bool selected);
+
 	StreightLine toStraightLine() const;
 	Line toLine() const;
 
@@ -100,9 +105,8 @@ signals:
 	void p2Changed();
 
 private:
-	void updateData();
-
 	Line m_line;
+	bool m_isSelected = false;
 };
 
 QDebug operator<<(QDebug, const StreightLine &);

@@ -4,6 +4,7 @@
 #include <QVector3D>
 
 #include <enums/MeshType.h>
+#include <geometry/GeometryPrimitives.h>
 #include <models/BasisPointsModel.h>
 #include <models/MeshListModel.h>
 
@@ -50,5 +51,6 @@ private:
 	std::unique_ptr<MeshListModel> m_meshListModel;
 	MeshList m_meshes;
 	MeshType m_meshType = MeshType::ClosedMesh;
-	std::unique_ptr<BasisPointsModel> m_basisPointsModel;
+	std::unique_ptr<BasisPointsModel> m_origBasises;
+	std::unique_ptr<BasisPointsModel> m_resBasises;
 };

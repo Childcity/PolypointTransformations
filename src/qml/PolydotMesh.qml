@@ -14,9 +14,13 @@ Entity {
 		asynchronous: true
 
 		delegate: Entity {
-			//required property QtObject lineGeometry
+			required property int index
 
-			objectName: "LINE"
+			required property var model
+			required property var lineGeometry
+			required property bool selected
+
+			objectName: "LINE " + index
 
 			PhongMaterial {
 				id: lineMat
@@ -58,8 +62,9 @@ Entity {
 			ObjectPicker {
 				id: linePicker
 				onClicked: pick => {
-					lineMat.ambient =  Qt.rgba(1, Math.random(), Math.random(), 1);
-					console.log(pick.entity, pick.distance);
+					model.selected = !selected;
+					lineMat.ambient = selected ? Qt.rgba(1, Math.random(), Math.random(), 1)
+											   : root.color;
 				}
 			}
 

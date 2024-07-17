@@ -1,6 +1,7 @@
 import Qt3D.Core
 import Qt3D.Extras
 import Qt3D.Render
+import Qt3D.Input
 
 import PolydotTransformationUi
 
@@ -9,7 +10,9 @@ Entity {
 
 	property alias text: label.text
 	property alias pos: tr.translation
-	property bool isLight: true
+	property bool isLight: false
+
+	signal requestPosChange(vector3d newPos)
 
 	Transform {
 		id: tr
@@ -19,15 +22,21 @@ Entity {
 	ObjectPicker {
 		id: picker
 		dragEnabled: true
-		onClicked: pick => {
-			root.isLight = !root.isLight;
-			console.log(pick.entity, pick.distance);
+		onPressed: function(pick) {
+			if (pick.button !== PickEvent.MiddleButton)
+				return;
+			root.isLight = true;
 		}
-		onMoved: pick => {
-			console.log("Moved", pick.entity, pick.distance);
-					 tr.translation = Qt.vector3d(pick.worldIntersection.x,
-												  pick.worldIntersection.y,
-												  0)
+		onReleased: function(pick) {
+			if (pick.button !== PickEvent.MiddleButton)
+				return;
+			root.isLight = false;
+		}
+		onMoved: function(pick) {
+			if (pick.buttons // Qt bug: pick.buttons is used instead of pick.button
+					!== PickEvent.MiddleButton)
+				return;
+			requestPosChange(Qt.vector3d(pick.worldIntersection.x, pick.worldIntersection.y, 0))
 		}
 	}
 
@@ -36,7 +45,7 @@ Entity {
 	Entity {
 		PhongMaterial {
 			id: mat
-			ambient: root.isLight ? "darkgreen" : "lightblue"
+			ambient: root.isLight ? "lightblue" : "darkgreen"
 			specular: ambient
 		}
 

@@ -1,6 +1,8 @@
 #pragma once
 
+#include <QCamera>
 #include <QObject>
+#include <Qt3DInput>
 
 #include <geometry/GeometryPrimitives.h>
 
@@ -23,11 +25,6 @@ public:
 	    const QVariantList &origBasises,
 	    const QVariantList &resBasises);
 
-	Q_INVOKABLE LineGeometry *getPolydotTransformedLine(
-	    const LineGeometry *line, //
-	    const QVariantList &origBasises,
-	    const QVariantList &resBasises);
-
 	static Mesh getPolydotTransformedMesh(
 	    Mesh mesh, //
 	    const QVariantList &origBasises,
@@ -37,4 +34,9 @@ public:
 	    Mesh mesh, //
 	    const QVariantList &origBasises,
 	    const QVariantList &resBasises);
+
+	Q_INVOKABLE static QVector3D mouseEventToSpace(
+	    const Qt3DInput::QMouseEvent *mouseEvent,
+	    const Qt3DRender::QCamera *camera,
+	    QSize surfaceSize);
 };

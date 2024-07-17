@@ -110,8 +110,8 @@ StreightLine MathUtils::getPolydotTransformedLine(
 	}
 
 	for (const auto &[originalBasis, resultBasis] : std::views::zip(origBasises, resBasises)) {
-		const auto &origBasis = *originalBasis.value<QVector3D *>();
-		const auto &resBasis = *resultBasis.value<QVector3D *>();
+		const auto &origBasis = originalBasis.value<QVector3D>();
+		const auto &resBasis = resultBasis.value<QVector3D>();
 
 		double betta = baseLineNormilized.signDistanceToPoint(origBasis);
 		double betta2 = signDistanceToLine(origBasis, baseLine.p1, baseLineDirection);
@@ -171,22 +171,6 @@ StreightLine MathUtils::getPolydotTransformedLine(
 	}
 
 	return {};
-}
-
-LineGeometry *MathUtils::getPolydotTransformedLine(
-    const LineGeometry *baseLine, const QVariantList &origBasises, const QVariantList &resBasises)
-{
-	if (!baseLine) {
-		return {};
-	}
-
-	const auto newLine = getPolydotTransformedLine(baseLine->toLine(), origBasises, resBasises);
-
-	if (newLine.isNull()) {
-		return {};
-	}
-
-	return new LineGeometry(newLine);
 }
 
 // Apply Polidot Transformations for each line (Result is StreightLine).
@@ -276,4 +260,31 @@ Mesh MathUtils::getPolydotTransformedStreightLineMesh(
 
 	// assert((inMesh.size()) == outMesh.size());
 	return outMesh;
+}
+
+QVector3D MathUtils::mouseEventToSpace(
+    const Qt3DInput::QMouseEvent *mouseEvent, const Qt3DRender::QCamera *camera, QSize surfaceSize)
+{
+	const int areaWidth = surfaceSize.width();
+	const int areaHeight = surfaceSize.height();
+	const QPointF glCorrectSurfacePosition = {
+	    static_cast<float>(mouseEvent->x()), areaHeight - static_cast<float>(mouseEvent->y())};
+
+	const QMatrix4x4 viewMatrix = {camera->viewMatrix()};
+	const QMatrix4x4 projectionMatrix = {camera->lens()->projectionMatrix()};
+
+	const auto relativeViewport = QRectF(0.0f, 0.0f, 1.0f, 1.0f);
+	const auto viewport = QRectF(
+	    relativeViewport.x() * areaWidth,
+	    (1.0 - relativeViewport.y() - relativeViewport.height()) * areaHeight,
+	    relativeViewport.width() * areaWidth,
+	    relativeViewport.height() * areaHeight);
+
+	const auto nearPos =
+	    QVector3D{
+	        static_cast<float>(glCorrectSurfacePosition.x()),
+	        static_cast<float>(glCorrectSurfacePosition.y()),
+	        0.0f}
+	        .unproject(viewMatrix, projectionMatrix, viewport.toRect());
+	return nearPos;
 }

@@ -14,6 +14,7 @@ Entity {
 		delegate: PointWithName {
 			text: name
 			pos: position
+			onRequestPosChange: newPos => position = newPos
 		}
 	}
 }
