@@ -2,6 +2,7 @@
 
 #include <QQmlEngine>
 #include <QSphereMesh>
+#include <QUuid>
 #include <QVector3D>
 
 struct StreightLine;
@@ -11,8 +12,12 @@ using Mesh = std::vector<Line>;
 using MeshList = std::vector<Mesh>;
 using BasisList = std::vector<QVector3D>;
 
+using LineId = QUuid;
+using LineIdList = std::vector<LineId>;
+
 struct Line
 {
+	QUuid id;
 	QVector3D p1;
 	QVector3D p2;
 

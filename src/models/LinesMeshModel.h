@@ -15,6 +15,8 @@ public:
 		SelectedRole,
 	};
 
+	using Selected = std::vector<std::pair<QPersistentModelIndex, LineId>>;
+
 	explicit LinesMeshModel(const Mesh &mesh, QObject *parent = nullptr);
 	~LinesMeshModel() override;
 
@@ -22,6 +24,8 @@ public:
 	int rowCount(const QModelIndex &parent) const override;
 	QVariant data(const QModelIndex &index, int role) const override;
 	bool setData(const QModelIndex &index, const QVariant &value, int role) override;
+
+	Selected selected() const;
 
 private:
 	std::vector<std::unique_ptr<class LineGeometry>> m_mesh;

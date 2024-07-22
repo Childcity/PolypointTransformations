@@ -161,7 +161,7 @@ void ColladaFormatImporter::readMesh(QXmlStreamReader &reader)
 	Mesh mesh;
 	mesh.reserve(linesVertices.size());
 	for (auto &&[startIndx, endIndx] : linesVertices) {
-		mesh.emplace_back(points.at(startIndx), points.at(endIndx));
+		mesh.emplace_back(QUuid::createUuid(), points.at(startIndx), points.at(endIndx));
 	}
 	m_meshes.emplace_back(std::move(mesh));
 }

@@ -1,5 +1,7 @@
 #include "LinesMeshModel.h"
 
+#include <ranges>
+
 LinesMeshModel::LinesMeshModel(const Mesh &mesh, QObject *parent)
     : QAbstractListModel(parent)
 {
@@ -50,6 +52,14 @@ bool LinesMeshModel::setData(const QModelIndex &index, const QVariant &value, in
 	const auto row = index.row();
 
 	switch (role) {
+	case LineGeometryRole: {
+		const auto &newLine = value.value<Line>();
+		auto lineGeom = std::make_unique<LineGeometry>(newLine);
+		lineGeom->setSelected(true);
+		m_mesh.at(row) = std::move(lineGeom);
+		emit dataChanged(index, index, {LineGeometryRole, SelectedRole});
+		return true;
+	}
 	case SelectedRole:
 		m_mesh.at(row)->setSelected(value.toBool());
 		emit dataChanged(index, index, {SelectedRole});
@@ -57,4 +67,17 @@ bool LinesMeshModel::setData(const QModelIndex &index, const QVariant &value, in
 	default:
 		return {};
 	};
+}
+
+LinesMeshModel::Selected LinesMeshModel::selected() const
+{
+	namespace v = std::views;
+
+	Selected res;
+	for (const auto &[lineGeom, i] : v::zip(m_mesh, v::iota(0, (int)m_mesh.size()))) {
+		if (lineGeom->selected()) {
+			res.emplace_back(index(i), lineGeom->toLine().id);
+		}
+	}
+	return res;
 }

@@ -11,6 +11,8 @@
 
 namespace {
 
+namespace v = std::views;
+
 Q_LOGGING_CATEGORY(polydot_line, "utils.polydot_line", QtInfoMsg)
 Q_LOGGING_CATEGORY(polydot_mesh, "utils.polydot_mesh", QtInfoMsg)
 
@@ -234,12 +236,13 @@ Mesh MathUtils::getPolydotTransformedMesh(
 
 	Mesh outMesh;
 	QVector3D leftPoint = linesIntersections.back(); // p4
-	for (auto rightPoint : linesIntersections | std::views::take(linesIntersections.size())) {
-		outMesh.emplace_back(leftPoint, rightPoint); // Create and add new line
+	for (int i = 0; auto rightPoint : linesIntersections | v::take(linesIntersections.size())) {
+		outMesh.emplace_back(inMesh.at(i).id, leftPoint, rightPoint); // Create and add new line
 		leftPoint = rightPoint;
+		i++;
 	}
 
-	// assert((inMesh.size() - 1) == outMesh.size());
+	assert((inMesh.size() - 1) == outMesh.size());
 	return outMesh;
 }
 

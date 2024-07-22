@@ -37,6 +37,7 @@ public slots:
 	void initMeshes();
 	void unloadMeshes();
 
+	void applyPolydotTransformationsForSelected(QVariantList origBasises, QVariantList resBasises);
 	void applyPolydotTransformations(QVariantList origBasises, QVariantList resBasises);
 
 signals:
