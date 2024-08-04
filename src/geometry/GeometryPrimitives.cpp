@@ -167,6 +167,11 @@ LineGeometry::LineGeometry(Line line)
 {
 }
 
+LineId LineGeometry::id() const
+{
+	return m_line.id;
+}
+
 QVector3D LineGeometry::p1() const
 {
 	return m_line.p1;
@@ -220,6 +225,18 @@ Line LineGeometry::toLine() const
 	return m_line;
 }
 
+QDebug operator<<(QDebug dbg, const Line &line)
+{
+	QDebugStateSaver stateSaver(dbg);
+	dbg.nospace()
+	    << QString("Line{%1, %2, %3}")
+	           .arg(
+	               line.id.toString(QUuid::Id128).first(4), //
+	               toString(line.p1),
+	               toString(line.p2));
+	return dbg;
+}
+
 QDebug operator<<(QDebug dbg, const StreightLine &sLine)
 {
 	QDebugStateSaver stateSaver(dbg);
@@ -230,7 +247,12 @@ QDebug operator<<(QDebug dbg, const StreightLine &sLine)
 QDebug operator<<(QDebug dbg, const LineGeometry &geom)
 {
 	QDebugStateSaver stateSaver(dbg);
-	dbg.nospace() << QString("Line{%1, %2}").arg(toString(geom.p1()), toString(geom.p2()));
+	dbg.nospace()
+	    << QString("Line{%1, %2, %3}")
+	           .arg(
+	               geom.id().toString(QUuid::Id128).first(4),
+	               toString(geom.p1()),
+	               toString(geom.p2()));
 	return dbg;
 }
 

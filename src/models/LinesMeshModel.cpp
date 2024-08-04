@@ -46,6 +46,7 @@ QVariant LinesMeshModel::data(const QModelIndex &index, int role) const
 bool LinesMeshModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
 	if (!index.isValid()) {
+		assert(false);
 		return {};
 	}
 
@@ -54,10 +55,7 @@ bool LinesMeshModel::setData(const QModelIndex &index, const QVariant &value, in
 	switch (role) {
 	case LineGeometryRole: {
 		const auto &newLine = value.value<Line>();
-		auto lineGeom = std::make_unique<LineGeometry>(newLine);
-		lineGeom->setSelected(true);
-		m_mesh.at(row) = std::move(lineGeom);
-		emit dataChanged(index, index, {LineGeometryRole, SelectedRole});
+		updateLine(row, newLine);
 		return true;
 	}
 	case SelectedRole:
@@ -69,12 +67,21 @@ bool LinesMeshModel::setData(const QModelIndex &index, const QVariant &value, in
 	};
 }
 
+void LinesMeshModel::updateLine(int row, const Line &line)
+{
+	auto lineGeom = std::make_unique<LineGeometry>(line);
+	lineGeom->setSelected(m_mesh.at(row)->selected());
+	m_mesh.at(row) = std::move(lineGeom);
+	const auto indx = index(row);
+	emit dataChanged(indx, indx, {LineGeometryRole});
+}
+
 LinesMeshModel::Selected LinesMeshModel::selected() const
 {
 	namespace v = std::views;
 
 	Selected res;
-	for (const auto &[lineGeom, i] : v::zip(m_mesh, v::iota(0, (int)m_mesh.size()))) {
+	for (const auto &[lineGeom, i] : v::zip(m_mesh, v::iota(0u, m_mesh.size()))) {
 		if (lineGeom->selected()) {
 			res.emplace_back(index(i), lineGeom->toLine().id);
 		}

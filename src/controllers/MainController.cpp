@@ -7,6 +7,26 @@
 #include <utils/import/ColladaFormatImporter.h>
 #include <utils/MathUtils.h>
 
+namespace {
+
+namespace v = std::views;
+
+std::optional<Line> getLineById(const Mesh &mesh, const LineId &lineId)
+{
+	const auto foundLine = std::ranges::find_if(mesh, [&lineId](const auto &line) {
+		return line.id == lineId;
+	});
+	return foundLine != mesh.cend() ? std::optional(*foundLine) : std::nullopt;
+}
+
+bool selected(const LinesMeshModel::Selected &selectedLines, const Line &line)
+{
+	return std::ranges::find(selectedLines, line.id, [](const auto &s) { return s.second; })
+	       != selectedLines.end();
+}
+
+} // namespace
+
 MainController::MainController(QObject *parent)
     : QObject(parent)
 {
@@ -136,7 +156,7 @@ void MainController::applyPolydotTransformationsForSelected(
 		const Mesh &outMesh = outMeshes[i];
 		const auto &selectedLines = selectedLinesInMeshList[i];
 
-		for (const auto &[line, selectedLine] : std::views::zip(outMesh, selectedLines)) {
+		for (const auto &[line, selectedLine] : v::zip(outMesh, selectedLines)) {
 			const auto &[selectedLineIndex, _] = selectedLine;
 			linesMeshModel->setData(
 			    selectedLineIndex,
@@ -144,6 +164,56 @@ void MainController::applyPolydotTransformationsForSelected(
 			    LinesMeshModel::LineGeometryRole);
 		}
 	}
+
+	////////////////////
+
+	for (int i = 0; i < m_meshListModel->rowCount({}) && i < outMeshes.size(); ++i) {
+		LinesMeshModel *linesMeshModel =
+		    m_meshListModel->index(i)
+		        .data(MeshListModel::LinesMeshModelRole)
+		        .value<LinesMeshModel *>();
+
+		const Mesh &inMesh = m_meshes[i];
+		const Mesh &outMesh = outMeshes[i];
+
+		// Instead of `selectedLines` use outMesh (outMesh must contain only selectedLines)
+		const auto &selectedLines = selectedLinesInMeshList[i];
+		//
+
+		for (const auto &[_, selectedLineId] : selectedLines) {
+			// For each selected line find all connected lines (connected to p1 / p2)
+
+			const auto selectedLineOld = getLineById(inMesh, selectedLineId);
+			const auto selectedLineNew = getLineById(outMesh, selectedLineId);
+			assert(selectedLineOld && selectedLineNew);
+			assert(selectedLineOld->id == selectedLineId && selectedLineNew->id == selectedLineId);
+
+			for (const auto &selectedLineOldP : {selectedLineOld->p1, selectedLineOld->p2}) {
+				// For each Line where р1/р2 == р upadate its р1/р2 to new р1`/р2`
+
+				for (auto &&[lineInInMesh, index] :
+				     v::zip(inMesh, v::iota(0, static_cast<int>(inMesh.size())))) {
+					if (selected(selectedLines, lineInInMesh)) {
+						// Skip lines, that have been transformed (selected lines)
+						continue;
+					}
+
+					if (selectedLineOldP == lineInInMesh.p1) {
+						// qWarning() << "p1 " << lineInInMesh.p1 << " -> " << p << index;
+						auto line = lineInInMesh;
+						line.p1 = selectedLineNew->p1;
+						linesMeshModel->updateLine(index, line);
+					} else if (selectedLineOldP == lineInInMesh.p2) {
+						// qWarning() << "p2" << lineInInMesh.p2 << " -> " << p << index;
+						auto line = lineInInMesh;
+						line.p2 = selectedLineNew->p2;
+						linesMeshModel->updateLine(index, line);
+					}
+				}
+			}
+		}
+	}
+	// qWarning() << "11111111111111111111111111111111111111111111111111111111111111111111";
 }
 
 void MainController::applyPolydotTransformations(QVariantList origBasises, QVariantList resBasises)

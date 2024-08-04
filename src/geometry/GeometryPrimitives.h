@@ -93,6 +93,8 @@ public:
 	explicit LineGeometry(Line line);
 	~LineGeometry() override = default;
 
+	LineId id() const;
+
 	QVector3D p1() const;
 	void setP1(QVector3D newP1);
 
@@ -114,5 +116,6 @@ private:
 	bool m_isSelected = false;
 };
 
+QDebug operator<<(QDebug, const Line &);
 QDebug operator<<(QDebug, const StreightLine &);
 QDebug operator<<(QDebug, const LineGeometry &);

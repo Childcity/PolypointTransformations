@@ -25,6 +25,8 @@ public:
 	QVariant data(const QModelIndex &index, int role) const override;
 	bool setData(const QModelIndex &index, const QVariant &value, int role) override;
 
+	void updateLine(int row, const Line &line);
+
 	Selected selected() const;
 
 private:
