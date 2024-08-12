@@ -1,6 +1,8 @@
 #include "MainController.h"
 
+#include <array>
 #include <ranges>
+#include <string_view>
 #include <thread>
 
 #include <models/LinesMeshModel.h>
@@ -10,6 +12,7 @@
 namespace {
 
 namespace v = std::views;
+using namespace std::string_view_literals;
 
 std::optional<Line> getLineById(const Mesh &mesh, const LineId &lineId)
 {
@@ -176,7 +179,7 @@ void MainController::applyPolydotTransformationsForSelected(
 		const Mesh &inMesh = m_meshes[i];
 		const Mesh &outMesh = outMeshes[i];
 
-		// Instead of `selectedLines` use outMesh (outMesh must contain only selectedLines)
+		// TODO: Instead of `selectedLines` use outMesh (outMesh must contain only selectedLines)
 		const auto &selectedLines = selectedLinesInMeshList[i];
 		//
 
@@ -188,32 +191,68 @@ void MainController::applyPolydotTransformationsForSelected(
 			assert(selectedLineOld && selectedLineNew);
 			assert(selectedLineOld->id == selectedLineId && selectedLineNew->id == selectedLineId);
 
-			for (const auto &selectedLineOldP : {selectedLineOld->p1, selectedLineOld->p2}) {
-				// For each Line where р1/р2 == р upadate its р1/р2 to new р1`/р2`
+			std::list<LineId> adjustedLinesInMeshe;
 
-				for (auto &&[lineInInMesh, index] :
-				     v::zip(inMesh, v::iota(0, static_cast<int>(inMesh.size())))) {
+			for (const auto &[selectedLineOldP, selectedLineNewP, selP] : //
+			     v::zip(
+			         std::array{selectedLineOld->p1, selectedLineOld->p2},
+			         std::array{selectedLineNew->p1, selectedLineNew->p2},
+			         std::array{"selP1"sv, "selP2"sv} // For case 1: See doc/case_1)
+			         ) //
+			) {
+				// For each Line where р1/р2 == р update its р1/р2 to new р1`/р2`
+
+				for (const auto &[lineInInMesh, index] :
+				     v::zip(inMesh, v::iota(0, static_cast<int>(inMesh.size()))) //
+				) {
 					if (selected(selectedLines, lineInInMesh)) {
 						// Skip lines, that have been transformed (selected lines)
 						continue;
 					}
+					if (std::ranges::contains(adjustedLinesInMeshe, lineInInMesh.id)) {
+						qWarning() << "Skip " << index;
+						continue;
+					}
 
 					if (selectedLineOldP == lineInInMesh.p1) {
-						// qWarning() << "p1 " << lineInInMesh.p1 << " -> " << p << index;
+						qWarning()
+						    << "p1" << lineInInMesh.p1 << " -> "
+						    << (selP == "selP1" ? "(selectedLineOld->p1)" : "(selectedLineOld->p2)")
+						    << selectedLineNewP << index;
+
 						auto line = lineInInMesh;
-						line.p1 = selectedLineNew->p1;
+						line.p1 = selectedLineNewP;
+
+						// line.p1 = selectedLineOldP.distanceToPoint(selectedLineNew->p1)
+						//                   <= selectedLineOldP.distanceToPoint(selectedLineNew->p2)
+						//               ? selectedLineNew->p1
+						//               : selectedLineNew->p2;
+						//  line.p1 = selectedLineNew->p2;
+						//?????????????????line.p1 = dist min(selectedLineNew->p1,
+						//  selectedLineNew->p2)
 						linesMeshModel->updateLine(index, line);
+						adjustedLinesInMeshe.push_back(lineInInMesh.id);
 					} else if (selectedLineOldP == lineInInMesh.p2) {
-						// qWarning() << "p2" << lineInInMesh.p2 << " -> " << p << index;
+						// qWarning()
+						//     << "p2" << lineInInMesh.p2 << " -> "
+						//     << (selP == "selP1" ? "(selectedLineOld->p1)" : "(selectedLineOld->p2)")
+						//     << selectedLineNewP << index;
+
 						auto line = lineInInMesh;
-						line.p2 = selectedLineNew->p2;
+						line.p2 = selectedLineNewP;
+						// line.p2 = selectedLineOldP.distanceToPoint(selectedLineNew->p1)
+						//                   <= selectedLineOldP.distanceToPoint(selectedLineNew->p2)
+						//               ? selectedLineNew->p1
+						//               : selectedLineNew->p2;
+						// line.p2 = selectedLineNew->p2;
 						linesMeshModel->updateLine(index, line);
+						adjustedLinesInMeshe.push_back(lineInInMesh.id);
 					}
 				}
 			}
 		}
 	}
-	// qWarning() << "11111111111111111111111111111111111111111111111111111111111111111111";
+	qWarning() << "11111111111111111111111111111111111111111111111111111111111111111111";
 }
 
 void MainController::applyPolydotTransformations(QVariantList origBasises, QVariantList resBasises)

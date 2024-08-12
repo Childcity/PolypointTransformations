@@ -17,7 +17,7 @@ using LineIdList = std::vector<LineId>;
 
 struct Line
 {
-	QUuid id;
+	LineId id;
 	QVector3D p1;
 	QVector3D p2;
 
