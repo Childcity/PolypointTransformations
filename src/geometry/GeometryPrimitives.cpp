@@ -50,7 +50,10 @@ void setPoint(QByteArray &data, int pointIndex, QVector3D point)
 QString toString(QVector3D vec)
 {
 	return QString("X:%1 Y:%2 Z:%3")
-	    .arg(QString::number(vec.x()), QString::number(vec.y()), QString::number(vec.z()));
+	    .arg(
+	        QString::number(vec.x(), 10, 3),
+	        QString::number(vec.y(), 10, 3),
+	        QString::number(vec.z(), 10, 3));
 }
 
 } // namespace

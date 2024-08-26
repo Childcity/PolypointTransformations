@@ -61,8 +61,8 @@ Entity {
 
 	Text2DEntity {
 		id: label
-		width: 20
-		height: 5
+		width: 0
+		height: 0
 		color: "green"
 		font: Qt.font({
 			family: "Consolas",

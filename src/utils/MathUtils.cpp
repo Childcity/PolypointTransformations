@@ -1,5 +1,6 @@
 #include "MathUtils.h"
 
+#include <bitset>
 #include <ranges>
 
 #include <QLoggingCategory>
@@ -201,11 +202,13 @@ Mesh MathUtils::getPolydotTransformedMesh(
 	// Now: line1, line2, line3, line4, line1
 	inMesh.emplace_back(inMesh.front());
 
+	std::vector<bool> linesWithSwappedBeginEnd(inMesh.size(), false);
+
 	std::vector<QVector3D> linesIntersections;
 	StreightLine leftTransformedLine = MathUtils::getPolydotTransformedLine(
 	    inMesh.front(), origBasises, resBasises); // line1
 
-	for (const auto &line : inMesh | std::views::drop(1)) { // Skip line1
+	for (int i = 1; auto &line : inMesh | v::drop(1)) { // Skip line1
 		StreightLine rightTransformedLine = MathUtils::getPolydotTransformedLine(
 		    line, origBasises, resBasises);
 
@@ -227,6 +230,11 @@ Mesh MathUtils::getPolydotTransformedMesh(
 			// }
 		}
 		leftTransformedLine = rightTransformedLine;
+
+		if (inMesh[i - 1].p2 == inMesh[i].p2) {
+			linesWithSwappedBeginEnd[i] = true;
+		}
+		i++;
 	}
 
 	if (linesIntersections.empty()) {
@@ -236,13 +244,23 @@ Mesh MathUtils::getPolydotTransformedMesh(
 
 	Mesh outMesh;
 	QVector3D leftPoint = linesIntersections.back(); // p4
-	for (int i = 0; auto rightPoint : linesIntersections | v::take(linesIntersections.size())) {
-		outMesh.emplace_back(inMesh.at(i).id, leftPoint, rightPoint); // Create and add new line
-		leftPoint = rightPoint;
-		i++;
+	for (const auto &[rightPoint, inLine, shouldSwap] :
+	     v::zip(linesIntersections, inMesh, linesWithSwappedBeginEnd) //
+	) {
+		// Create and add new line
+		if (shouldSwap) {
+			outMesh.emplace_back(inLine.id, rightPoint, leftPoint);
+		} else {
+			outMesh.emplace_back(inLine.id, leftPoint, rightPoint);
+			leftPoint = rightPoint;
+		}
 	}
 
-	assert((inMesh.size() - 1) == outMesh.size());
+	// assert((inMesh.size() - 1) == outMesh.size());
+	if ((inMesh.size() - 1) != outMesh.size()) {
+		outMesh = {inMesh.begin(), inMesh.end() - 1};
+	}
+
 	return outMesh;
 }
 

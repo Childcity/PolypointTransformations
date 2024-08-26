@@ -45,6 +45,7 @@ MainController::MainController(QObject *parent)
 		        m_origBasises->rawData(), m_resBasises->rawData());
 	    },
 	    Qt::QueuedConnection);
+	loadMeshes();
 }
 
 MainController::~MainController() = default;
@@ -210,26 +211,19 @@ void MainController::applyPolydotTransformationsForSelected(
 						continue;
 					}
 					if (std::ranges::contains(adjustedLinesInMeshe, lineInInMesh.id)) {
-						qWarning() << "Skip " << index;
+						// qWarning() << "Skip " << index;
 						continue;
 					}
 
 					if (selectedLineOldP == lineInInMesh.p1) {
-						qWarning()
-						    << "p1" << lineInInMesh.p1 << " -> "
-						    << (selP == "selP1" ? "(selectedLineOld->p1)" : "(selectedLineOld->p2)")
-						    << selectedLineNewP << index;
+						// qWarning()
+						//     << "p1" << lineInInMesh.p1 << " -> "
+						//     << (selP == "selP1" ? "(selectedLineOld->p1)" : "(selectedLineOld->p2)")
+						//     << selectedLineNewP << index;
 
 						auto line = lineInInMesh;
 						line.p1 = selectedLineNewP;
 
-						// line.p1 = selectedLineOldP.distanceToPoint(selectedLineNew->p1)
-						//                   <= selectedLineOldP.distanceToPoint(selectedLineNew->p2)
-						//               ? selectedLineNew->p1
-						//               : selectedLineNew->p2;
-						//  line.p1 = selectedLineNew->p2;
-						//?????????????????line.p1 = dist min(selectedLineNew->p1,
-						//  selectedLineNew->p2)
 						linesMeshModel->updateLine(index, line);
 						adjustedLinesInMeshe.push_back(lineInInMesh.id);
 					} else if (selectedLineOldP == lineInInMesh.p2) {
@@ -240,11 +234,7 @@ void MainController::applyPolydotTransformationsForSelected(
 
 						auto line = lineInInMesh;
 						line.p2 = selectedLineNewP;
-						// line.p2 = selectedLineOldP.distanceToPoint(selectedLineNew->p1)
-						//                   <= selectedLineOldP.distanceToPoint(selectedLineNew->p2)
-						//               ? selectedLineNew->p1
-						//               : selectedLineNew->p2;
-						// line.p2 = selectedLineNew->p2;
+
 						linesMeshModel->updateLine(index, line);
 						adjustedLinesInMeshe.push_back(lineInInMesh.id);
 					}
@@ -252,7 +242,6 @@ void MainController::applyPolydotTransformationsForSelected(
 			}
 		}
 	}
-	qWarning() << "11111111111111111111111111111111111111111111111111111111111111111111";
 }
 
 void MainController::applyPolydotTransformations(QVariantList origBasises, QVariantList resBasises)

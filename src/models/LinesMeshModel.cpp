@@ -5,8 +5,13 @@
 LinesMeshModel::LinesMeshModel(const Mesh &mesh, QObject *parent)
     : QAbstractListModel(parent)
 {
+	int i = 0;
 	for (const auto &line : mesh) {
 		m_mesh.emplace_back(std::make_unique<LineGeometry>(line));
+		// if (std::ranges::contains(std::array{2, 3, 5, 8}, i++)) { // case_2 selection
+		// if (std::ranges::contains(std::array{0, 18, 1, 2}, i++)) { // 3x3
+		//	m_mesh.back()->setSelected(true);
+		// }
 	}
 }
 
