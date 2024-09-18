@@ -24,7 +24,10 @@ Entity {
 
 			PhongMaterial {
 				id: lineMat
-				ambient: selected ? Qt.rgba(1, Math.random(), Math.random(), 1) : root.color
+				//ambient: selected ? Qt.rgba(1, Math.random(), Math.random(), 1) : root.color
+				//ambient: selected ? "purple" : root.color
+				ambient: selected ? "yellow" : root.color
+				//ambient: selected ? "black" : root.color
 			}
 
 			Attribute {
@@ -68,49 +71,49 @@ Entity {
 
 			components: [lineMat, lineMesh, linePicker]
 
-			Text2DEntity {
-				id: label
-				width: 20
-				height: 5
-				color: "purple"
-				font: Qt.font({
-					family: "Consolas",
-					pointSize: 3,
-					bold: true
-				})
+			// Text2DEntity {
+			// 	id: label
+			// 	width: 20
+			// 	height: 5
+			// 	color: "purple"
+			// 	font: Qt.font({
+			// 		family: "Consolas",
+			// 		pointSize: 3,
+			// 		bold: true
+			// 	})
 
-				text: index + "p1"
+			// 	text: index + "p1"
 
-				Transform {
-					id: labelTr
-					scale: 0.06
-					translation: Qt.vector3d(lineGeometry.p1.x + Math.random()/3, lineGeometry.p1.y, 0)
-				}
+			// 	Transform {
+			// 		id: labelTr
+			// 		scale: 0.06
+			// 		translation: Qt.vector3d(lineGeometry.p1.x + Math.random()/3, lineGeometry.p1.y, 0)
+			// 	}
 
-				components: [labelTr]
-			}
+			// 	components: [labelTr]
+			// }
 
-			Text2DEntity {
-				id: label2
-				width: 20
-				height: 5
-				color: "gray"
-				font: Qt.font({
-					family: "Consolas",
-					pointSize: 3,
-					bold: true
-				})
+			// Text2DEntity {
+			// 	id: label2
+			// 	width: 20
+			// 	height: 5
+			// 	color: "gray"
+			// 	font: Qt.font({
+			// 		family: "Consolas",
+			// 		pointSize: 3,
+			// 		bold: true
+			// 	})
 
-				text: index + "p2"
+			// 	text: index + "p2"
 
-				Transform {
-					id: label2Tr
-					scale: 0.06
-					translation: Qt.vector3d(lineGeometry.p2.x, lineGeometry.p2.y + Math.random()/3, 0)
-				}
+			// 	Transform {
+			// 		id: label2Tr
+			// 		scale: 0.06
+			// 		translation: Qt.vector3d(lineGeometry.p2.x, lineGeometry.p2.y + Math.random()/3, 0)
+			// 	}
 
-				components: [label2Tr]
-			}
+			// 	components: [label2Tr]
+			// }
 		}
 	}
 }

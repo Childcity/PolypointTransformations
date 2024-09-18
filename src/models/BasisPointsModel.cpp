@@ -6,10 +6,11 @@ BasisPointsModel::BasisPointsModel(QObject *parent)
     : QAbstractListModel(parent)
 {
 	m_basises = {
-	    {0, 0, 0},
-	    {1, 1, 0},
-	    {1, 2, 0},
-	    {2, 1, 0},
+	    {1 * 3, 1 * 3, 0},
+	    {1 * 3, 2 * 3, 0},
+	    {2 * 3, 2 * 3, 0},
+	    {2 * 3, 1 * 3, 0},
+	    {1.5 * 3, 1.5 * 3, 0},
 	};
 }
 

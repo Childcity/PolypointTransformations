@@ -45,6 +45,23 @@ MainController::MainController(QObject *parent)
 		        m_origBasises->rawData(), m_resBasises->rawData());
 	    },
 	    Qt::QueuedConnection);
+	connect(
+	    this,
+	    &MainController::loadComplete,
+	    this,
+	    [this] {
+		    // m_resBasises->setData(m_resBasises->index(0), QVector3D{0.9 * 3, 0.9 * 3, 0});
+		    // m_resBasises->setData(m_resBasises->index(1), QVector3D{0.9 * 3, 2.1 * 3, 0});
+		    // m_resBasises->setData(m_resBasises->index(2), QVector3D{2.1 * 3, 2.1 * 3, 0});
+		    // m_resBasises->setData(m_resBasises->index(3), QVector3D{2.1 * 3, 0.9 * 3, 0});
+		    // m_resBasises->setData(m_resBasises->index(4), QVector3D{1.5 * 3, 1.5 * 3, 0});
+		    m_resBasises->setData(m_resBasises->index(0), QVector3D{1 * 3, 1 * 3, 0});
+		    m_resBasises->setData(m_resBasises->index(1), QVector3D{1 * 3, 2 * 3, 0});
+		    m_resBasises->setData(m_resBasises->index(2), QVector3D{2.2 * 3, 2.4 * 3, 0});
+		    m_resBasises->setData(m_resBasises->index(3), QVector3D{2 * 3, 1 * 3, 0});
+		    m_resBasises->setData(m_resBasises->index(4), QVector3D{2.7 * 3, 1.5 * 3, 0});
+	    },
+	    Qt::QueuedConnection);
 	loadMeshes();
 }
 
@@ -92,6 +109,15 @@ void MainController::applyPolydotTransformationsForSelected(
 	if (!m_meshListModel || !m_meshListModel->rowCount({})) {
 		return;
 	}
+
+	qDebug() << "-------------------------";
+	int bi = 0;
+	for (auto b : resBasises) {
+		auto bv = b.value<QVector3D>();
+		qDebug() << "m_resBasises->setData(m_resBasises->index(" << bi++ << "), QVector3D{"
+		         << (bv.x() / 3.f) << " * 3, " << (bv.y() / 3.f) << " * 3, 0});";
+	}
+	qDebug() << "-------------------------";
 
 	MeshList mesheListToTransform;
 	std::vector<LinesMeshModel::Selected> selectedLinesInMeshList;

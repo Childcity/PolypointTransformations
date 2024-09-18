@@ -9,9 +9,9 @@ LinesMeshModel::LinesMeshModel(const Mesh &mesh, QObject *parent)
 	for (const auto &line : mesh) {
 		m_mesh.emplace_back(std::make_unique<LineGeometry>(line));
 		// if (std::ranges::contains(std::array{2, 3, 5, 8}, i++)) { // case_2 selection
-		// if (std::ranges::contains(std::array{0, 18, 1, 2}, i++)) { // 3x3
-		//	m_mesh.back()->setSelected(true);
-		// }
+		// if (std::ranges::contains(std::array{4, 18, 20}, i++)) { // 3x3
+		m_mesh.back()->setSelected(true);
+		//}
 	}
 }
 
@@ -65,6 +65,7 @@ bool LinesMeshModel::setData(const QModelIndex &index, const QVariant &value, in
 	}
 	case SelectedRole:
 		m_mesh.at(row)->setSelected(value.toBool());
+		qInfo() << "Selected: " << row;
 		emit dataChanged(index, index, {SelectedRole});
 		return true;
 	default:

@@ -26,7 +26,8 @@ Entity {
 	components: [
 		RenderSettings {
 			activeFrameGraph: ForwardRenderer {
-				clearColor: "#2d2d2d"
+				//clearColor: "#2d2d2d"
+				clearColor: "white"
 				camera: camera
 			}
 			pickingSettings.pickMethod: PickingSettings.PrimitivePicking
@@ -46,7 +47,8 @@ Entity {
 
 	PolydotMeshList {
 		model: mainController.meshListModel
-		color: "yellow"
+		//color: "yellow"
+		color: "black"
 	}
 
 	Connections {

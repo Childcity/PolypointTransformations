@@ -25,6 +25,5 @@ public:
 
 	QVariantList rawData() const;
 
-private:
 	BasisList m_basises;
 };
