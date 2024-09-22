@@ -71,27 +71,27 @@ Entity {
 
 			components: [lineMat, lineMesh, linePicker]
 
-			// Text2DEntity {
-			// 	id: label
-			// 	width: 20
-			// 	height: 5
-			// 	color: "purple"
-			// 	font: Qt.font({
-			// 		family: "Consolas",
-			// 		pointSize: 3,
-			// 		bold: true
-			// 	})
+			Text2DEntity {
+				id: label
+				width: 20
+				height: 10
+				color: "purple"
+				font: Qt.font({
+					family: "Consolas",
+					pointSize: 5,
+					bold: true
+				})
 
-			// 	text: index + "p1"
+				text: "P" + (index + 1)
 
-			// 	Transform {
-			// 		id: labelTr
-			// 		scale: 0.06
-			// 		translation: Qt.vector3d(lineGeometry.p1.x + Math.random()/3, lineGeometry.p1.y, 0)
-			// 	}
+				Transform {
+					id: labelTr
+					scale: 0.06
+					translation: Qt.vector3d(lineGeometry.p1.x + Math.random()/3, lineGeometry.p1.y, 0)
+				}
 
-			// 	components: [labelTr]
-			// }
+				components: [labelTr]
+			}
 
 			// Text2DEntity {
 			// 	id: label2
