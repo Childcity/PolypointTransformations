@@ -13,9 +13,10 @@ namespace {
 
 namespace v = std::views;
 using namespace std::string_view_literals;
+using namespace std::chrono_literals;
 
-auto cTimeout = 400;
-auto cLine1DeltaX = 1;
+auto cTimeout = 500;
+auto cLine1DeltaX = 0.2;
 
 std::optional<Line> getLineById(const Mesh &mesh, const LineId &lineId)
 {
@@ -33,11 +34,24 @@ bool selected(const LinesMeshModel::Selected &selectedLines, const Line &line)
 
 } // namespace
 
+auto startAnimationDelay = new QElapsedTimer();
+auto elapsedTime = new QElapsedTimer();
+
 MainController::MainController(QObject *parent)
     : QObject(parent)
 {
 	m_origBasises = std::make_unique<BasisPointsModel>();
 	m_resBasises = std::make_unique<BasisPointsModel>("B%1`");
+
+	connect(m_origBasises.get(), &BasisPointsModel::dataChanged, this, [this] {
+		qDebug() << "ORIG -------------------------";
+		int bi = 0;
+		for (auto b : m_origBasises->rawData()) {
+			auto bv = b.value<QVector3D>();
+			qDebug() << " {" << bv.x() << ", " << bv.y() << ", 0},";
+		}
+		qDebug() << "-------------------------";
+	});
 
 	connect(
 	    m_resBasises.get(),
@@ -47,9 +61,14 @@ MainController::MainController(QObject *parent)
 		    if (bottomRight.row() != 4) {
 			    return;
 		    }
+		    if (elapsedTime->elapsed() < cTimeout && startAnimationDelay->elapsed() > 1000) {
+			    return;
+		    }
 
-		    qDebug() << topLeft << bottomRight;
-		    QTimer::singleShot(cTimeout, [this] {
+		    qDebug() << topLeft << bottomRight << elapsedTime->elapsed();
+		    elapsedTime->restart();
+
+		    QTimer::singleShot(startAnimationDelay->elapsed() < 1000 ? 3000 : cTimeout, [this] {
 			    applyPolydotTransformationsForSelected(
 			        m_origBasises->rawData(), m_resBasises->rawData());
 			    m_tmpBasises = m_resBasises.get();
@@ -86,14 +105,22 @@ MainController::MainController(QObject *parent)
 		    // m_resBasises->setData(m_resBasises->index(4), QVector3D{2.7, 1.5, 0});
 		    // m_resBasises->setData(m_resBasises->index(1), QVector3D{2, 2, 0});
 		    // m_resBasises->setData(m_resBasises->index(2), QVector3D{1, 2, 0});
-		    m_resBasises->setData(m_resBasises->index(3), QVector3D{1.5, 1.5, 0});
-		    m_resBasises->setData(m_resBasises->index(4), QVector3D{2, 1, 0});
+		    // m_resBasises->setData(m_resBasises->index(3), QVector3D{1.5, 1.5, 0});
+		    // m_resBasises->setData(m_resBasises->index(4), QVector3D{2, 1, 0});
+		    m_resBasises->setData(m_resBasises->index(0), QVector3D{0.233062 * 3, 1.42754, 0});
+		    m_resBasises->setData(m_resBasises->index(1), QVector3D{0.460022 * 3, 2.92124, 0});
+		    m_resBasises->setData(m_resBasises->index(2), QVector3D{1.04417 * 3, 2.63525, 0});
+		    m_resBasises->setData(m_resBasises->index(3), QVector3D{1.09037 * 3, 1.03, 0});
+		    m_resBasises->setData(m_resBasises->index(4), QVector3D{0.636043 * 3, 0.332303, 0});
 	    },
 	    Qt::QueuedConnection);
 
 	loadMeshes();
-	m_tmpBasises = m_origBasises.get();
+	// m_tmpBasises = m_origBasises.get();
+	m_tmpBasises = m_resBasises.get();
 	initMeshes();
+
+	startAnimationDelay->start();
 }
 
 MainController::~MainController() = default;
