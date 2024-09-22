@@ -14,6 +14,9 @@ namespace {
 namespace v = std::views;
 using namespace std::string_view_literals;
 
+auto cTimeout = 400;
+auto cLine1DeltaX = 1;
+
 std::optional<Line> getLineById(const Mesh &mesh, const LineId &lineId)
 {
 	const auto foundLine = std::ranges::find_if(mesh, [&lineId](const auto &line) {
@@ -34,15 +37,36 @@ MainController::MainController(QObject *parent)
     : QObject(parent)
 {
 	m_origBasises = std::make_unique<BasisPointsModel>();
-	m_resBasises = std::make_unique<BasisPointsModel>();
+	m_resBasises = std::make_unique<BasisPointsModel>("B%1`");
 
 	connect(
 	    m_resBasises.get(),
 	    &BasisPointsModel::dataChanged,
 	    this,
-	    [this] {
-		    applyPolydotTransformationsForSelected(
-		        m_origBasises->rawData(), m_resBasises->rawData());
+	    [this](const QModelIndex &topLeft, const QModelIndex &bottomRight, const QList<int> &roles) {
+		    if (bottomRight.row() != 4) {
+			    return;
+		    }
+
+		    qDebug() << topLeft << bottomRight;
+		    QTimer::singleShot(cTimeout, [this] {
+			    applyPolydotTransformationsForSelected(
+			        m_origBasises->rawData(), m_resBasises->rawData());
+			    m_tmpBasises = m_resBasises.get();
+			    emit basisPointsModelChanged();
+
+			    QTimer::singleShot(cTimeout * 2, [this] {
+				    auto &mesh = m_meshes.front();
+				    qDebug() << "mesh[1].p2" << mesh[1].p2.x();
+				    mesh[1].p2.setX(mesh[1].p2.x() + cLine1DeltaX);
+				    cLine1DeltaX += 0.5;
+				    mesh[2].p1 = mesh[1].p2;
+				    m_tmpBasises = m_origBasises.get();
+				    emit basisPointsModelChanged();
+				    QMetaObject::invokeMethod(
+				        this, &MainController::initMeshes, Qt::QueuedConnection);
+			    });
+		    });
 	    },
 	    Qt::QueuedConnection);
 	connect(
@@ -55,14 +79,21 @@ MainController::MainController(QObject *parent)
 		    // m_resBasises->setData(m_resBasises->index(2), QVector3D{2.1 * 3, 2.1 * 3, 0});
 		    // m_resBasises->setData(m_resBasises->index(3), QVector3D{2.1 * 3, 0.9 * 3, 0});
 		    // m_resBasises->setData(m_resBasises->index(4), QVector3D{1.5 * 3, 1.5 * 3, 0});
-		    m_resBasises->setData(m_resBasises->index(0), QVector3D{1 * 3, 1 * 3, 0});
-		    m_resBasises->setData(m_resBasises->index(1), QVector3D{1 * 3, 2 * 3, 0});
-		    m_resBasises->setData(m_resBasises->index(2), QVector3D{2.2 * 3, 2.4 * 3, 0});
-		    m_resBasises->setData(m_resBasises->index(3), QVector3D{2 * 3, 1 * 3, 0});
-		    m_resBasises->setData(m_resBasises->index(4), QVector3D{2.7 * 3, 1.5 * 3, 0});
+		    // m_resBasises->setData(m_resBasises->index(0), QVector3D{1, 1, 0});
+		    // m_resBasises->setData(m_resBasises->index(1), QVector3D{1, 2, 0});
+		    // m_resBasises->setData(m_resBasises->index(2), QVector3D{2.2, 2.4, 0});
+		    // m_resBasises->setData(m_resBasises->index(3), QVector3D{2, 1, 0});
+		    // m_resBasises->setData(m_resBasises->index(4), QVector3D{2.7, 1.5, 0});
+		    // m_resBasises->setData(m_resBasises->index(1), QVector3D{2, 2, 0});
+		    // m_resBasises->setData(m_resBasises->index(2), QVector3D{1, 2, 0});
+		    m_resBasises->setData(m_resBasises->index(3), QVector3D{1.5, 1.5, 0});
+		    m_resBasises->setData(m_resBasises->index(4), QVector3D{2, 1, 0});
 	    },
 	    Qt::QueuedConnection);
+
 	loadMeshes();
+	m_tmpBasises = m_origBasises.get();
+	initMeshes();
 }
 
 MainController::~MainController() = default;
@@ -81,13 +112,13 @@ void MainController::loadMeshes()
 {
 	unloadMeshes();
 
-	std::jthread([this] {
-		const auto path = "C:\\Users\\Ariel\\Documents\\AAScetch\\exp\\Untitled.dae";
-		ColladaFormatImporter importer(path);
-		importer.importGeometries();
-		m_meshes = importer.getGeometries();
-		QMetaObject::invokeMethod(this, &MainController::initMeshes, Qt::QueuedConnection);
-	}).detach();
+	// std::jthread([this] {
+	const auto path = "C:\\Users\\Ariel\\Documents\\AAScetch\\exp\\Untitled.dae";
+	ColladaFormatImporter importer(path);
+	importer.importGeometries();
+	m_meshes = importer.getGeometries();
+	// QMetaObject::invokeMethod(this, &MainController::initMeshes, Qt::QueuedConnection);
+	//}).detach();
 }
 
 void MainController::initMeshes()
@@ -115,7 +146,7 @@ void MainController::applyPolydotTransformationsForSelected(
 	for (auto b : resBasises) {
 		auto bv = b.value<QVector3D>();
 		qDebug() << "m_resBasises->setData(m_resBasises->index(" << bi++ << "), QVector3D{"
-		         << (bv.x() / 3.f) << " * 3, " << (bv.y() / 3.f) << " * 3, 0});";
+		         << (bv.x() / 3.f) << " * 3, " << (bv.y()) << ", 0});";
 	}
 	qDebug() << "-------------------------";
 
@@ -314,5 +345,5 @@ void MainController::setMeshType(MeshType meshType)
 
 BasisPointsModel *MainController::basisPointsModel() const
 {
-	return m_resBasises.get();
+	return m_tmpBasises;
 }

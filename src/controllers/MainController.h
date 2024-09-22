@@ -54,4 +54,7 @@ private:
 	MeshType m_meshType = MeshType::ClosedMesh;
 	std::unique_ptr<BasisPointsModel> m_origBasises;
 	std::unique_ptr<BasisPointsModel> m_resBasises;
+
+	BasisPointsModel *m_tmpBasises;
+	bool blockUpdate = false;
 };

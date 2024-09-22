@@ -2,15 +2,16 @@
 
 #include <QVector3D>
 
-BasisPointsModel::BasisPointsModel(QObject *parent)
+BasisPointsModel::BasisPointsModel(QString nameTemplate, QObject *parent)
     : QAbstractListModel(parent)
+    , m_nameTemplate(std::move(nameTemplate))
 {
 	m_basises = {
-	    {1 * 3, 1 * 3, 0},
-	    {1 * 3, 2 * 3, 0},
-	    {2 * 3, 2 * 3, 0},
-	    {2 * 3, 1 * 3, 0},
-	    {1.5 * 3, 1.5 * 3, 0},
+	    {1, 1, 0},
+	    {1, 2, 0},
+	    {2, 2, 0},
+	    {2, 1, 0},
+	    {1.5, 1.5, 0},
 	};
 }
 
@@ -39,7 +40,7 @@ QVariant BasisPointsModel::data(const QModelIndex &index, int role) const
 
 	switch (role) {
 	case NameRole:
-		return std::format("B{}`", row + 1).c_str();
+		return m_nameTemplate.arg(row + 1);
 	case PositionRole:
 		return m_basises.at(row);
 	default:

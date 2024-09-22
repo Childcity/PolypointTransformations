@@ -15,7 +15,7 @@ public:
 		PositionRole,
 	};
 
-	explicit BasisPointsModel(QObject *parent = nullptr);
+	explicit BasisPointsModel(QString nameTemplate = "B%1", QObject *parent = nullptr);
 	~BasisPointsModel() override;
 
 	QHash<int, QByteArray> roleNames() const override;
@@ -26,4 +26,5 @@ public:
 	QVariantList rawData() const;
 
 	BasisList m_basises;
+	QString m_nameTemplate;
 };
