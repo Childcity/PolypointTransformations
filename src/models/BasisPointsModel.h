@@ -13,6 +13,8 @@ public:
 	{
 		NameRole = Qt::UserRole + 1,
 		PositionRole,
+		PointScaleRole,
+		NamePointSizeRole,
 	};
 
 	explicit BasisPointsModel(QString nameTemplate = "B%1", QObject *parent = nullptr);

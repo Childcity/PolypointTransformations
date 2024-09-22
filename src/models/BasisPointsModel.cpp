@@ -7,11 +7,11 @@ BasisPointsModel::BasisPointsModel(QString nameTemplate, QObject *parent)
     , m_nameTemplate(std::move(nameTemplate))
 {
 	m_basises = {
-	    {1, 1, 0},
-	    {1, 2, 0},
-	    {2, 2, 0},
-	    {2, 1, 0},
-	    {1.5, 1.5, 0},
+	    {1.2, 1.4, 0},
+	    {1.7, 2.3, 0},
+	    {2.7, 2.1, 0},
+	    {2.8, 1.2, 0},
+	    {1.9, 0.8, 0},
 	};
 }
 
@@ -22,6 +22,8 @@ QHash<int, QByteArray> BasisPointsModel::roleNames() const
 	return {
 	    {NameRole, "name"},
 	    {PositionRole, "position"},
+	    {PointScaleRole, "pointScale"},
+	    {NamePointSizeRole, "namePointSize"},
 	};
 }
 
@@ -43,6 +45,10 @@ QVariant BasisPointsModel::data(const QModelIndex &index, int role) const
 		return m_nameTemplate.arg(row + 1);
 	case PositionRole:
 		return m_basises.at(row);
+	case PointScaleRole:
+		return 0.4;
+	case NamePointSizeRole:
+		return 4;
 	default:
 		return {};
 	}

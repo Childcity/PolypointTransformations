@@ -20,8 +20,8 @@ Entity {
 
 	OrbitCameraController {
 		camera: camera
-		linearSpeed: 300
-		lookSpeed: 400
+		linearSpeed: 50
+		lookSpeed: 300
 	}
 
 	components: [

@@ -9,6 +9,9 @@ Entity {
 	id: root
 
 	property alias text: label.text
+	property alias scale: tr.scale
+	property int textPointSize: 1
+
 	property alias pos: tr.translation
 	property bool isLight: false
 
@@ -67,13 +70,13 @@ Entity {
 		color: mat.ambient
 		font: Qt.font({
 			family: "Consolas",
-			pointSize: 4,
+			pointSize: root.textPointSize,
 			bold: true
 		})
 
 		Transform {
 			id: labelTr
-			scale: 0.2
+			scale: root.scale / 3
 			translation: Qt.vector3d(0.3, 0.3, 0)
 		}
 
