@@ -2,9 +2,15 @@
 
 #include <QVector3D>
 
-BasisPointsModel::BasisPointsModel(QString nameTemplate, QObject *parent)
+BasisPointsModel::BasisPointsModel(
+    QString nameTemplate, //
+    double pointScale,
+    int namePointSize,
+    QObject *parent)
     : QAbstractListModel(parent)
     , m_nameTemplate(std::move(nameTemplate))
+    , m_pointScale(pointScale)
+    , m_namePointSize(namePointSize)
 {
 	m_basises = {
 	    {1.2, 1.4, 0},
@@ -46,9 +52,9 @@ QVariant BasisPointsModel::data(const QModelIndex &index, int role) const
 	case PositionRole:
 		return m_basises.at(row);
 	case PointScaleRole:
-		return 0.4;
+		return m_pointScale;
 	case NamePointSizeRole:
-		return 4;
+		return m_namePointSize;
 	default:
 		return {};
 	}

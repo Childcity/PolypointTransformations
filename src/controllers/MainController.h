@@ -16,8 +16,10 @@ class MainController : public QObject
 	Q_PROPERTY(QVector3D globalScale READ globalScale CONSTANT FINAL)
 	Q_PROPERTY(MeshListModel *meshListModel READ meshListModel NOTIFY meshListModelChanged FINAL)
 	Q_PROPERTY(MeshType meshType READ meshType WRITE setMeshType NOTIFY meshTypeChanged FINAL)
-	Q_PROPERTY(BasisPointsModel *basisPointsModel READ basisPointsModel NOTIFY
-	               basisPointsModelChanged FINAL)
+	Q_PROPERTY(BasisPointsModel *inBasisPointsModel READ inBasisPointsModel NOTIFY
+	               outBasisPointsModelChanged FINAL)
+	Q_PROPERTY(BasisPointsModel *outBasisPointsModel READ outBasisPointsModel NOTIFY
+	               outBasisPointsModelChanged FINAL)
 
 public:
 	explicit MainController(QObject *parent = nullptr);
@@ -30,7 +32,8 @@ public:
 	MeshType meshType() const;
 	void setMeshType(MeshType meshType);
 
-	BasisPointsModel *basisPointsModel() const;
+	BasisPointsModel *inBasisPointsModel() const;
+	BasisPointsModel *outBasisPointsModel() const;
 
 public slots:
 	void loadMeshes();
@@ -44,7 +47,8 @@ signals:
 	void loadComplete();
 	void meshListModelChanged();
 	void meshTypeChanged();
-	void basisPointsModelChanged();
+	void inBasisPointsModelChanged();
+	void outBasisPointsModelChanged();
 
 private:
 	QVector3D m_globalScale = {100, 100, 100};

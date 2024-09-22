@@ -17,7 +17,11 @@ public:
 		NamePointSizeRole,
 	};
 
-	explicit BasisPointsModel(QString nameTemplate = "B%1", QObject *parent = nullptr);
+	explicit BasisPointsModel(
+	    QString nameTemplate = "B%1",
+	    double pointScale = 0.4,
+	    int namePointSize = 4,
+	    QObject *parent = nullptr);
 	~BasisPointsModel() override;
 
 	QHash<int, QByteArray> roleNames() const override;
@@ -29,4 +33,6 @@ public:
 
 	BasisList m_basises;
 	QString m_nameTemplate;
+	double m_pointScale;
+	int m_namePointSize;
 };

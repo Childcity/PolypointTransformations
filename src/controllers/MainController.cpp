@@ -15,7 +15,7 @@ namespace v = std::views;
 using namespace std::string_view_literals;
 using namespace std::chrono_literals;
 
-auto cTimeout = 500;
+auto cTimeout = 700;
 auto cLine1DeltaX = 0.2;
 
 std::optional<Line> getLineById(const Mesh &mesh, const LineId &lineId)
@@ -40,7 +40,7 @@ auto elapsedTime = new QElapsedTimer();
 MainController::MainController(QObject *parent)
     : QObject(parent)
 {
-	m_origBasises = std::make_unique<BasisPointsModel>();
+	m_origBasises = std::make_unique<BasisPointsModel>("B%1");
 	m_resBasises = std::make_unique<BasisPointsModel>("B%1`");
 
 	connect(m_origBasises.get(), &BasisPointsModel::dataChanged, this, [this] {
@@ -61,31 +61,31 @@ MainController::MainController(QObject *parent)
 		    if (bottomRight.row() != 4) {
 			    return;
 		    }
-		    if (elapsedTime->elapsed() < cTimeout && startAnimationDelay->elapsed() > 1000) {
-			    return;
-		    }
 
 		    qDebug() << topLeft << bottomRight << elapsedTime->elapsed();
 		    elapsedTime->restart();
 
-		    QTimer::singleShot(startAnimationDelay->elapsed() < 1000 ? 3000 : cTimeout, [this] {
-			    applyPolydotTransformationsForSelected(
-			        m_origBasises->rawData(), m_resBasises->rawData());
-			    m_tmpBasises = m_resBasises.get();
-			    emit basisPointsModelChanged();
+		    QTimer::singleShot(
+		        startAnimationDelay->elapsed() < 1000 ? 3000 : cTimeout,
+		        Qt::TimerType::PreciseTimer,
+		        [this] {
+			        applyPolydotTransformationsForSelected(
+			            m_origBasises->rawData(), m_resBasises->rawData());
+			        m_tmpBasises = m_resBasises.get();
+			        emit outBasisPointsModelChanged();
 
-			    QTimer::singleShot(cTimeout * 2, [this] {
-				    auto &mesh = m_meshes.front();
-				    qDebug() << "mesh[1].p2" << mesh[1].p2.x();
-				    mesh[1].p2.setX(mesh[1].p2.x() + cLine1DeltaX);
-				    cLine1DeltaX += 0.5;
-				    mesh[2].p1 = mesh[1].p2;
-				    m_tmpBasises = m_origBasises.get();
-				    emit basisPointsModelChanged();
-				    QMetaObject::invokeMethod(
-				        this, &MainController::initMeshes, Qt::QueuedConnection);
-			    });
-		    });
+			        QTimer::singleShot(cTimeout * 2, Qt::TimerType::PreciseTimer, [this] {
+				        auto &mesh = m_meshes.front();
+				        qDebug() << "mesh[1].p2" << mesh[1].p2.x();
+				        mesh[1].p2.setX(mesh[1].p2.x() + cLine1DeltaX);
+				        cLine1DeltaX += 0.3;
+				        mesh[2].p1 = mesh[1].p2;
+				        m_tmpBasises = m_origBasises.get();
+				        emit outBasisPointsModelChanged();
+				        QMetaObject::invokeMethod(
+				            this, &MainController::initMeshes, Qt::QueuedConnection);
+			        });
+		        });
 	    },
 	    Qt::QueuedConnection);
 	connect(
@@ -116,8 +116,8 @@ MainController::MainController(QObject *parent)
 	    Qt::QueuedConnection);
 
 	loadMeshes();
-	// m_tmpBasises = m_origBasises.get();
-	m_tmpBasises = m_resBasises.get();
+	m_tmpBasises = m_origBasises.get();
+	// m_tmpBasises = m_resBasises.get();
 	initMeshes();
 
 	startAnimationDelay->start();
@@ -370,7 +370,14 @@ void MainController::setMeshType(MeshType meshType)
 	emit meshTypeChanged();
 }
 
-BasisPointsModel *MainController::basisPointsModel() const
+BasisPointsModel *MainController::inBasisPointsModel() const
+{
+	return {};
+	return m_origBasises.get();
+}
+
+BasisPointsModel *MainController::outBasisPointsModel() const
 {
 	return m_tmpBasises;
+	return m_resBasises.get();
 }

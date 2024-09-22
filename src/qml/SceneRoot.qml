@@ -41,7 +41,11 @@ Entity {
 	}
 
 	PolydotBasisPoints {
-		model: mainController.basisPointsModel
+		model: mainController.inBasisPointsModel
+	}
+
+	PolydotBasisPoints {
+		model: mainController.outBasisPointsModel
 	}
 
 	//CoordinatesHelper {}

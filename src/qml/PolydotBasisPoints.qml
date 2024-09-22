@@ -7,7 +7,6 @@ Entity {
 
 	NodeInstantiator {
 		id: points
-		model: root.model
 
 		//asynchronous: true
 
