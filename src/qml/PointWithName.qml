@@ -45,7 +45,8 @@ Entity {
 	Entity {
 		PhongMaterial {
 			id: mat
-			ambient: root.isLight ? "lightblue" : "darkgreen"
+			//ambient: root.isLight ? "lightblue" : "green"
+			ambient: root.isLight ? "lightblue" : "black"
 			specular: ambient
 		}
 
@@ -63,7 +64,7 @@ Entity {
 		id: label
 		width: 20
 		height: 5
-		color: "green"
+		color: mat.ambient
 		font: Qt.font({
 			family: "Consolas",
 			pointSize: 4,

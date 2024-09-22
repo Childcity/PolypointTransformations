@@ -1,3 +1,4 @@
+import QtQuick
 import Qt3D.Core
 import Qt3D.Extras
 import Qt3D.Input
@@ -12,7 +13,7 @@ Entity {
 		fieldOfView: 60
 		nearPlane: 0.1
 		farPlane: 1000.0
-		position: Qt.vector3d(0, 0, 3)
+		position: Qt.vector3d(0, 0, 10)
 		upVector: Qt.vector3d(0, 1, 0)
 		viewCenter: Qt.vector3d(0, 0, 0)
 	}
@@ -43,7 +44,7 @@ Entity {
 		model: mainController.basisPointsModel
 	}
 
-	CoordinatesHelper {}
+	//CoordinatesHelper {}
 
 	PolydotMeshList {
 		model: mainController.meshListModel
@@ -56,8 +57,29 @@ Entity {
 
 		function onStateChanged() {
 			if (Application.state === Qt.ApplicationActive) {
-				mainController.loadMeshes();
+				//mainController.loadMeshes();
 			}
 		}
+	}
+
+	Entity {
+		PointLight {
+			id: light
+			constantAttenuation: 0.8
+			//linearAttenuation: 0.001
+			//quadraticAttenuation: 0.8
+
+			//NumberAnimation on constantAttenuation {
+			//	duration: 5000
+			//	from: 0.1
+			//	to: 0.6
+			//}
+			//onConstantAttenuationChanged: console.log("constantAttenuation", constantAttenuation)
+		}
+		Transform {
+			id: lightTr
+			translation: Qt.vector3d(0, 0, 5)
+		}
+		components: [light, lightTr]
 	}
 }
