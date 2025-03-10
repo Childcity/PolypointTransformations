@@ -69,16 +69,8 @@ Entity {
 	Entity {
 		PointLight {
 			id: light
-			constantAttenuation: 0.8
-			//linearAttenuation: 0.001
-			//quadraticAttenuation: 0.8
-
-			//NumberAnimation on constantAttenuation {
-			//	duration: 5000
-			//	from: 0.1
-			//	to: 0.6
-			//}
-			//onConstantAttenuationChanged: console.log("constantAttenuation", constantAttenuation)
+			//constantAttenuation: 0.8
+			constantAttenuation: 10
 		}
 		Transform {
 			id: lightTr

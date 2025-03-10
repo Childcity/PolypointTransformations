@@ -56,8 +56,8 @@ Entity {
 		SphereMesh {
 			id: mesh
 			radius: 0.3
-			rings: 5
-			slices: 5
+			rings: 10
+			slices: 10
 		}
 
 		components: [mat, mesh]
@@ -76,7 +76,7 @@ Entity {
 
 		Transform {
 			id: labelTr
-			scale: root.scale / 3
+			scale: root.scale / 0.65
 			translation: Qt.vector3d(0.3, 0.3, 0)
 		}
 

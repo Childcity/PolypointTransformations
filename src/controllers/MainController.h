@@ -60,5 +60,7 @@ private:
 	std::unique_ptr<BasisPointsModel> m_resBasises;
 
 	BasisPointsModel *m_tmpBasises;
-	bool blockUpdate = false;
+	QString m_path;
+	bool m_dontTransform = 1;
+	bool m_showOnlyInBasises = m_dontTransform;
 };

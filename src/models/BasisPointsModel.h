@@ -19,7 +19,7 @@ public:
 
 	explicit BasisPointsModel(
 	    QString nameTemplate = "B%1",
-	    double pointScale = 0.4,
+	    double pointScale = 0.2,
 	    int namePointSize = 4,
 	    QObject *parent = nullptr);
 	~BasisPointsModel() override;

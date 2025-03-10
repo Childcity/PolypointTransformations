@@ -32,6 +32,21 @@ bool selected(const LinesMeshModel::Selected &selectedLines, const Line &line)
 	       != selectedLines.end();
 }
 
+void appendToFile(const QString &filePath, const QString &text)
+{
+	QFile file(filePath);
+
+	if (!file.open(QIODevice::Append | QIODevice::Text)) {
+		qDebug() << "Unable to open the file for appending!";
+		return;
+	}
+
+	QTextStream out(&file);
+	out << text << "\n";
+
+	file.close();
+}
+
 } // namespace
 
 auto startAnimationDelay = new QElapsedTimer();
@@ -39,6 +54,9 @@ auto elapsedTime = new QElapsedTimer();
 
 MainController::MainController(QObject *parent)
     : QObject(parent)
+    , m_path("C:\\Users\\Ariel\\Documents\\AAScetch\\exp\\Untitled.dae")
+    , m_dontTransform(0)
+    , m_showOnlyInBasises(m_dontTransform)
 {
 	m_origBasises = std::make_unique<BasisPointsModel>("B%1");
 	m_resBasises = std::make_unique<BasisPointsModel>("B%1`");
@@ -59,32 +77,33 @@ MainController::MainController(QObject *parent)
 	    this,
 	    [this](const QModelIndex &topLeft, const QModelIndex &bottomRight, const QList<int> &roles) {
 		    if (bottomRight.row() != 4) {
-			    return;
+			    // return;
 		    }
 
 		    qDebug() << topLeft << bottomRight << elapsedTime->elapsed();
 		    elapsedTime->restart();
 
 		    QTimer::singleShot(
-		        startAnimationDelay->elapsed() < 1000 ? 3000 : cTimeout,
+		        0 /*startAnimationDelay->elapsed() < 1000 ? 3000 : cTimeout*/,
 		        Qt::TimerType::PreciseTimer,
 		        [this] {
+			        // applyPolydotTransformations(m_origBasises->rawData(), m_resBasises->rawData());
 			        applyPolydotTransformationsForSelected(
 			            m_origBasises->rawData(), m_resBasises->rawData());
-			        m_tmpBasises = m_resBasises.get();
-			        emit outBasisPointsModelChanged();
+			        // m_tmpBasises = m_resBasises.get();
+			        // emit outBasisPointsModelChanged();
 
-			        QTimer::singleShot(cTimeout * 2, Qt::TimerType::PreciseTimer, [this] {
-				        auto &mesh = m_meshes.front();
-				        qDebug() << "mesh[1].p2" << mesh[1].p2.x();
-				        mesh[1].p2.setX(mesh[1].p2.x() + cLine1DeltaX);
-				        cLine1DeltaX += 0.3;
-				        mesh[2].p1 = mesh[1].p2;
-				        m_tmpBasises = m_origBasises.get();
-				        emit outBasisPointsModelChanged();
-				        QMetaObject::invokeMethod(
-				            this, &MainController::initMeshes, Qt::QueuedConnection);
-			        });
+			        // QTimer::singleShot(cTimeout * 2, Qt::TimerType::PreciseTimer, [this] {
+			        //  auto &mesh = m_meshes.front();
+			        //  qDebug() << "mesh[1].p2" << mesh[1].p2.x();
+			        //  mesh[1].p2.setX(mesh[1].p2.x() + cLine1DeltaX);
+			        //  cLine1DeltaX += 0.3;
+			        //  mesh[2].p1 = mesh[1].p2;
+			        //  m_tmpBasises = m_origBasises.get();
+			        //  emit outBasisPointsModelChanged();
+			        //  QMetaObject::invokeMethod(
+			        //      this, &MainController::initMeshes, Qt::QueuedConnection);
+			        // });
 		        });
 	    },
 	    Qt::QueuedConnection);
@@ -93,25 +112,11 @@ MainController::MainController(QObject *parent)
 	    &MainController::loadComplete,
 	    this,
 	    [this] {
-		    // m_resBasises->setData(m_resBasises->index(0), QVector3D{0.9 * 3, 0.9 * 3, 0});
-		    // m_resBasises->setData(m_resBasises->index(1), QVector3D{0.9 * 3, 2.1 * 3, 0});
-		    // m_resBasises->setData(m_resBasises->index(2), QVector3D{2.1 * 3, 2.1 * 3, 0});
-		    // m_resBasises->setData(m_resBasises->index(3), QVector3D{2.1 * 3, 0.9 * 3, 0});
-		    // m_resBasises->setData(m_resBasises->index(4), QVector3D{1.5 * 3, 1.5 * 3, 0});
-		    // m_resBasises->setData(m_resBasises->index(0), QVector3D{1, 1, 0});
-		    // m_resBasises->setData(m_resBasises->index(1), QVector3D{1, 2, 0});
-		    // m_resBasises->setData(m_resBasises->index(2), QVector3D{2.2, 2.4, 0});
-		    // m_resBasises->setData(m_resBasises->index(3), QVector3D{2, 1, 0});
-		    // m_resBasises->setData(m_resBasises->index(4), QVector3D{2.7, 1.5, 0});
-		    // m_resBasises->setData(m_resBasises->index(1), QVector3D{2, 2, 0});
-		    // m_resBasises->setData(m_resBasises->index(2), QVector3D{1, 2, 0});
-		    // m_resBasises->setData(m_resBasises->index(3), QVector3D{1.5, 1.5, 0});
-		    // m_resBasises->setData(m_resBasises->index(4), QVector3D{2, 1, 0});
-		    m_resBasises->setData(m_resBasises->index(0), QVector3D{0.233062 * 3, 1.42754, 0});
-		    m_resBasises->setData(m_resBasises->index(1), QVector3D{0.460022 * 3, 2.92124, 0});
-		    m_resBasises->setData(m_resBasises->index(2), QVector3D{1.04417 * 3, 2.63525, 0});
-		    m_resBasises->setData(m_resBasises->index(3), QVector3D{1.09037 * 3, 1.03, 0});
-		    m_resBasises->setData(m_resBasises->index(4), QVector3D{0.636043 * 3, 0.332303, 0});
+		    m_resBasises->setData(m_resBasises->index(0), QVector3D{-0.774849 * 3, 3.19947, 0});
+		    m_resBasises->setData(m_resBasises->index(1), QVector3D{-1.25373 * 3, -1.22209, 0});
+		    m_resBasises->setData(m_resBasises->index(2), QVector3D{0.00177962 * 3, -3.95088, 0});
+		    m_resBasises->setData(m_resBasises->index(3), QVector3D{1.25313 * 3, -1.21648, 0});
+		    m_resBasises->setData(m_resBasises->index(4), QVector3D{0.774849 * 3, 3.19947, 0});
 	    },
 	    Qt::QueuedConnection);
 
@@ -140,8 +145,7 @@ void MainController::loadMeshes()
 	unloadMeshes();
 
 	// std::jthread([this] {
-	const auto path = "C:\\Users\\Ariel\\Documents\\AAScetch\\exp\\Untitled.dae";
-	ColladaFormatImporter importer(path);
+	ColladaFormatImporter importer(m_path);
 	importer.importGeometries();
 	m_meshes = importer.getGeometries();
 	// QMetaObject::invokeMethod(this, &MainController::initMeshes, Qt::QueuedConnection);
@@ -176,6 +180,10 @@ void MainController::applyPolydotTransformationsForSelected(
 		         << (bv.x() / 3.f) << " * 3, " << (bv.y()) << ", 0});";
 	}
 	qDebug() << "-------------------------";
+
+	if (m_dontTransform) {
+		return;
+	}
 
 	MeshList mesheListToTransform;
 	std::vector<LinesMeshModel::Selected> selectedLinesInMeshList;
@@ -234,6 +242,12 @@ void MainController::applyPolydotTransformationsForSelected(
 
 	std::ranges::transform(mesheListToTransform, std::back_inserter(outMeshes), transformer);
 
+	appendToFile(
+	    "points.txt",
+	    QString("%1;%2").arg(
+	        QString::number(mesheListToTransform[0].size()),
+	        QString::number(mesheListToTransform[0][0].p1.distanceToPoint(outMeshes[0][0].p1))));
+
 	// Update changed lines in the model
 	for (int i = 0; i < m_meshListModel->rowCount({}) && i < outMeshes.size(); ++i) {
 		auto linesMeshModel =
@@ -252,7 +266,7 @@ void MainController::applyPolydotTransformationsForSelected(
 			    LinesMeshModel::LineGeometryRole);
 		}
 	}
-
+	return;
 	////////////////////
 
 	for (int i = 0; i < m_meshListModel->rowCount({}) && i < outMeshes.size(); ++i) {
@@ -378,6 +392,10 @@ BasisPointsModel *MainController::inBasisPointsModel() const
 
 BasisPointsModel *MainController::outBasisPointsModel() const
 {
-	return m_tmpBasises;
+	return {};
+	// return m_tmpBasises;
+	if (m_showOnlyInBasises) {
+		return {};
+	}
 	return m_resBasises.get();
 }

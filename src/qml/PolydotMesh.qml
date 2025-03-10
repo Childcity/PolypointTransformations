@@ -26,8 +26,9 @@ Entity {
 				id: lineMat
 				//ambient: selected ? Qt.rgba(1, Math.random(), Math.random(), 1) : root.color
 				//ambient: selected ? "purple" : root.color
-				ambient: selected ? "yellow" : root.color
+				//ambient: selected ? "yellow" : root.color
 				//ambient: selected ? "black" : root.color
+				ambient: "blue"
 			}
 
 			Attribute {
@@ -87,7 +88,8 @@ Entity {
 				Transform {
 					id: labelTr
 					scale: 0.06
-					translation: Qt.vector3d(lineGeometry.p1.x + Math.random()/3, lineGeometry.p1.y, 0)
+					//translation: Qt.vector3d(lineGeometry.p1.x + Math.random()/3, lineGeometry.p1.y, 0)
+					translation: Qt.vector3d(lineGeometry.p1.x + 0.08, lineGeometry.p1.y, 0)
 				}
 
 				components: [labelTr]

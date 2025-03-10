@@ -9,8 +9,8 @@ ApplicationWindow {
 
 	visible: true
 
-	width: 1280
-	height: 720
+	width: 600
+	height: 600
 
 	Scene3D {
 		anchors.fill: parent
