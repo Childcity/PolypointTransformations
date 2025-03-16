@@ -79,4 +79,11 @@ target_link_libraries(${APP_NAME} PRIVATE
     Qt::Quick
 )
 
+# add 3rdparty
+add_subdirectory(3rdparty/eigen)
+include_directories(
+    3rdparty/eigen
+)
+
+# add other targets
 add_subdirectory(3d-banchmark)
