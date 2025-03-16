@@ -78,3 +78,5 @@ target_link_libraries(${APP_NAME} PRIVATE
     Qt::Qml
     Qt::Quick
 )
+
+add_subdirectory(3d-banchmark)
