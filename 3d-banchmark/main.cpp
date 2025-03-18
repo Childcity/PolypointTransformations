@@ -3,39 +3,25 @@
 #include <format>
 #include <fstream>
 #include <iostream>
+#include <numeric>
+#include <ranges>
+#include <thread>
 
 #include <Eigen/Dense>
 
 using namespace std;
-namespace fs = std::filesystem;
+namespace fs = filesystem;
 
 namespace geom {
 
-double eps = 1e-9;
-double reg_term = 1e-6;
-
-bool areEqual(double a, double b)
-{
-	return std::abs(a - b) < eps;
-}
-
-// struct Point
-// {
-// 	double x, y, z;
-
-// 	bool operator==(const Point &other) const
-// 	{
-// 		return std::abs(x - other.x) < 1e-9 && std::abs(y - other.y) < 1e-9
-// 		       && std::abs(z - other.z) < 1e-9;
-// 	}
-// };
+constexpr double reg_term = 1e-6;
 
 struct Plane
 {
 	int id;
 	double a, b, c, d;
 
-	double sign_distance(const Eigen::Vector3d &point) const
+	double signDistance(const Eigen::Vector3d &point) const
 	{
 		return a * point.x() + b * point.y() + c * point.z() + d;
 	}
@@ -43,8 +29,8 @@ struct Plane
 
 Plane getPolypointPlane(
     const Plane &plane,
-    const std::vector<Eigen::Vector3d> &origBasises,
-    const std::vector<Eigen::Vector3d> &resBasises)
+    const vector<Eigen::Vector3d> &origBasises,
+    const vector<Eigen::Vector3d> &resBasises)
 {
 	double a1 = 0, b1 = 0, c1 = 0, d1 = 0, r1 = 0;
 	double b2 = 0, c2 = 0, d2 = 0, r2 = 0;
@@ -55,7 +41,7 @@ Plane getPolypointPlane(
 		const Eigen::Vector3d &orig_basis_p = origBasises[i];
 		const Eigen::Vector3d &res_basis_p = resBasises[i];
 
-		double gamma = plane.sign_distance(orig_basis_p);
+		double gamma = plane.signDistance(orig_basis_p);
 		double gamma_squared = gamma * gamma;
 
 		double x = res_basis_p.x();
@@ -94,25 +80,22 @@ Plane getPolypointPlane(
 	return {plane.id, X(0), X(1), X(2), X(3)};
 }
 
+using PlaneList = vector<geom::Plane>;
+
 } // namespace geom
 
 struct ElapsedTimer
 {
-	chrono::high_resolution_clock::time_point start;
+	chrono::high_resolution_clock::time_point start = chrono::high_resolution_clock::now();
 
-	ElapsedTimer()
-	    : start(chrono::high_resolution_clock::now())
-	{
-	}
-
-	auto elapsedSec()
+	double elapsedSec()
 	{
 		chrono::duration<double> dur = chrono::high_resolution_clock::now() - start;
 		return dur.count();
 	}
 };
 
-auto readPlanes(auto filePath)
+auto readPlanesTxt(auto filePath)
 {
 	vector<geom::Plane> inPlanes;
 	inPlanes.reserve(1'000'000);
@@ -125,25 +108,137 @@ auto readPlanes(auto filePath)
 	return inPlanes;
 }
 
+auto readPlanesBin(auto filePath)
+{
+	// Assume data stores as list of double.
+	// Each 4 double are 1 Plane(a, b, c, d).
+
+	// Open the binary file
+	ifstream file{filePath, ios::binary};
+
+	streamsize fileSize = [&file] {
+		file.seekg(0, ios::end);
+		auto size = file.tellg();
+		file.seekg(0, ios::beg);
+		return size;
+	}();
+
+	// Calculate the number of elements
+	size_t num_elements = fileSize / sizeof(double);
+
+	// Read the data into a vector
+	vector<double> data(num_elements);
+	file.read(reinterpret_cast<char *>(data.data()), fileSize);
+
+	vector<geom::Plane> inPlanes;
+
+	// Convert to Planes
+	inPlanes.reserve(data.size() / 4);
+	for (auto &&chunk : data | views::chunk(4)) {
+		inPlanes.emplace_back(0, chunk[0], chunk[1], chunk[2], chunk[3]);
+	}
+
+	return inPlanes;
+}
+
+void increasePlanesAount(vector<geom::Plane> &planes)
+{
+	for (int i = 0; i < 8; i++) {
+		planes.insert(planes.end(), planes.begin(), planes.end());
+	}
+	planes.resize(80'000'000);
+}
+
+geom::PlaneList serialApproach(auto &inPlanes, auto &basis_in, auto &basis_out)
+{
+	geom::PlaneList result;
+	result.reserve(inPlanes.size());
+
+	auto timer = ElapsedTimer{};
+	for (auto plane : inPlanes) {
+		result.push_back(getPolypointPlane(plane, basis_in, basis_out));
+	}
+	cout << format("Serial. Deformation took: {}\n", timer.elapsedSec());
+	return result;
+}
+
+geom::PlaneList collectThreadResults(
+    const geom::PlaneList &inPlanes, const vector<geom::PlaneList> &threadResults)
+{
+	// Collect results from all threads
+	geom::PlaneList result;
+	result.reserve(inPlanes.size());
+	for (const auto &partialResult : threadResults) {
+		result.insert(result.end(), partialResult.begin(), partialResult.end());
+	}
+	return result;
+}
+
+geom::PlaneList threadChunkApproach(
+    const geom::PlaneList &inPlanes, const auto &basis_in, const auto &basis_out, auto threadCount)
+{
+	vector<jthread> threads;
+	size_t chunkSize = inPlanes.size() / threadCount;
+
+	auto threadResultsPtr = std::make_unique<vector<geom::PlaneList>>(threadCount);
+	auto &threadResults = *threadResultsPtr;
+
+	// Start parallel execution
+	for (size_t i = 0; i < threadCount; ++i) {
+		auto start = inPlanes.begin() + i * chunkSize;
+		auto end = (i == threadCount - 1) ? inPlanes.end() : start + chunkSize;
+
+		threads.emplace_back([&, start, end, i] {
+			for (auto &&[_, inPlane] : ranges::subrange(start, end) | views::enumerate) {
+				threadResults[i].push_back(getPolypointPlane(inPlane, basis_in, basis_out));
+			}
+		});
+	}
+
+	std::ranges::for_each(threads, &jthread::join);
+	return collectThreadResults(inPlanes, threadResults);
+}
+
 int main()
 {
+	constexpr auto runEachExperement = 3;
+
 	auto currPath = fs::current_path();
-	auto planesFile = currPath.append("in_planes.txt");
+	auto planesFile = currPath.append("in_planes.npy");
 	cout << format("Planes file: {}\n", planesFile.string());
 
 	auto timer = ElapsedTimer{};
-	auto inPlanes = readPlanes(planesFile);
+	auto inPlanes = readPlanesBin(planesFile);
+	increasePlanesAount(inPlanes);
 
 	// clang-format off
 	cout << format("Read {} planes in {} seconds\n", inPlanes.size(), timer.elapsedSec());
 	cout << format("Last plane: {} {} {} {}\n", inPlanes.back().a, inPlanes.back().b, inPlanes.back().c, inPlanes.back().d);
+	cout << endl;
+
+	auto basis_in = vector<Eigen::Vector3d>{
+	    {0.0, 0.0, 1.0}, {0.0, 1.0, 1.0}, {0.0, 0.0, 0.0}, {0.0, 1.0, -0.0},
+	    {1.0, 0.0, 1.0}, {1.0, 1.0, 1.0}, {1.0, 0.0, 0.0}, {1.0, 1.0, -0.0}};
+	auto basis_out = vector<Eigen::Vector3d>{
+	    {0.0, 0.0, 1.0},  {0.2, 0.2,   1.0}, {0.0, 0.0,      0.0}, {0.0, 1.0, -0.0},
+	    {0.2, -0.2, 1.0}, {1.18, 0.78, 1.0}, {1.0, 6.12e-17, 0.0}, {1.0, 1.0, -0.0}};
 	// clang-format on
 
-	timer = ElapsedTimer{};
-	for (auto plane : inPlanes) {
-		getPolypointPlane(plane, {{1, 1, 1}, {2, 2, 2}}, {{2, 2, 2}, {1, 1, 1}});
+	// serialApproach(inPlanes, basis_in, basis_out);
+
+	for (size_t threadCount = 16; threadCount <= 16;
+	     /*thread::hardware_concurrency();*/ threadCount++) {
+		std::vector<double> times;
+
+		for (int i = 0; i < runEachExperement; ++i) {
+			ElapsedTimer timer;
+			auto result = threadChunkApproach(inPlanes, basis_in, basis_out, threadCount);
+			times.push_back(timer.elapsedSec());
+		}
+
+		auto elapsedSec = std::accumulate(times.begin(), times.end(), 0.0) / runEachExperement;
+		cout << format("{}; {}", threadCount, elapsedSec) << endl;
 	}
-	cout << format("Deformation took: {}\n", timer.elapsedSec());
 
 	return 0;
 }

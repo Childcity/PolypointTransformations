@@ -1,0 +1,39 @@
+{
+    "version": 4,
+    "configurePresets": [
+        {
+            "name": "debug-ninja-qt-msvc-x64",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/build-1",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_CXX_COMPILER": "cl.exe",
+                "CMAKE_C_COMPILER": "cl.exe",
+                "CMAKE_TOOLCHAIN_FILE": "C:/DevTools/Qt/6.7.3/msvc2022_64/lib/cmake/Qt6/qt.toolchain.cmake"
+            }
+        },
+        {
+            "name": "release-ninja-qt-msvc-x64",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/build-2",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_CXX_COMPILER": "cl.exe",
+                "CMAKE_C_COMPILER": "cl.exe",
+                "CMAKE_TOOLCHAIN_FILE": "C:/DevTools/Qt/6.7.3/msvc2022_64/lib/cmake/Qt6/qt.toolchain.cmake"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "Build debug-ninja-qt-msvc-x64",
+            "configurePreset": "debug-ninja-qt-msvc-x64",
+            "configuration": "Debug"
+        },
+        {
+            "name": "Build release-ninja-qt-msvc-x64",
+            "configurePreset": "release-ninja-qt-msvc-x64",
+            "configuration": "RelWithDebInfo"
+        }
+    ]
+}

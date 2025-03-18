@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.14)
 project(PolydotTransformations VERSION 0.2 LANGUAGES CXX)
 
 set(APP_NAME PolydotTransformation)
+set(CMAKE_CXX_STANDARD 23)
 set(SOURCE_DIR src)
 
 # set(CMAKE_INCLUDE_CURRENT_DIR ON)
