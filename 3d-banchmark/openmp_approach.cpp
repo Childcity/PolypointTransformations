@@ -3,10 +3,10 @@
 #include <fstream>
 #include <iostream>
 #include <numeric>
-#include <ranges>
-#include <thread>
+#include <vector>
 
 #include <Eigen/Dense>
+#include <omp.h>
 
 using namespace std;
 namespace fs = filesystem;
@@ -94,7 +94,7 @@ struct ElapsedTimer
 	}
 };
 
-auto readPlanesTxt(auto filePath)
+static vector<geom::Plane> readPlanesTxt(const fs::path &filePath)
 {
 	vector<geom::Plane> inPlanes;
 	inPlanes.reserve(1'000'000);
@@ -103,7 +103,6 @@ auto readPlanesTxt(auto filePath)
 	for (double a, b, c, d; file >> a >> b >> c >> d;) {
 		inPlanes.emplace_back(0, a, b, c, d);
 	}
-
 	return inPlanes;
 }
 
@@ -136,7 +135,7 @@ static vector<geom::Plane> readPlanesBin(const fs::path &filePath)
 	return inPlanes;
 }
 
-void increasePlanesAount(vector<geom::Plane> &planes)
+static void increasePlanesAount(vector<geom::Plane> &planes)
 {
 	for (int i = 0; i < 8; i++) {
 		planes.insert(planes.end(), planes.begin(), planes.end());
@@ -144,54 +143,24 @@ void increasePlanesAount(vector<geom::Plane> &planes)
 	planes.resize(80'000'000);
 }
 
-geom::PlaneList serialApproach(auto &inPlanes, auto &basis_in, auto &basis_out)
+// -------- OpenMP version --------
+static geom::PlaneList openmpApproach(
+    const geom::PlaneList &inPlanes,
+    const vector<Eigen::Vector3d> &basis_in,
+    const vector<Eigen::Vector3d> &basis_out)
 {
-	geom::PlaneList result;
-	result.reserve(inPlanes.size());
+	geom::PlaneList result(inPlanes.size());
 
-	auto timer = ElapsedTimer{};
-	for (auto plane : inPlanes) {
-		result.push_back(getPolypointPlane(plane, basis_in, basis_out));
+	// First-touch happens naturally here when each thread writes its own chunk.
+	const size_t planesSize = inPlanes.size();
+
+	ElapsedTimer timer;
+#pragma omp parallel for schedule(static)
+	for (size_t i = 0; i < planesSize; ++i) {
+		result[i] = geom::getPolypointPlane(inPlanes[i], basis_in, basis_out);
 	}
-	cout << format("Serial. Deformation took: {}\n", timer.elapsedSec());
+	// cout << std::format("OpenMP. Deformation took: {}\n", timer.elapsedSec());
 	return result;
-}
-
-geom::PlaneList collectThreadResults(
-    const geom::PlaneList &inPlanes, const vector<geom::PlaneList> &threadResults)
-{
-	// Collect results from all threads
-	geom::PlaneList result;
-	result.reserve(inPlanes.size());
-	for (const auto &partialResult : threadResults) {
-		result.insert(result.end(), partialResult.begin(), partialResult.end());
-	}
-	return result;
-}
-
-geom::PlaneList threadChunkApproach(
-    const geom::PlaneList &inPlanes, const auto &basis_in, const auto &basis_out, auto threadCount)
-{
-	vector<jthread> threads;
-	size_t chunkSize = inPlanes.size() / threadCount;
-
-	auto threadResultsPtr = std::make_unique<vector<geom::PlaneList>>(threadCount);
-	auto &threadResults = *threadResultsPtr;
-
-	// Start parallel execution
-	for (size_t i = 0; i < threadCount; ++i) {
-		auto start = inPlanes.begin() + i * chunkSize;
-		auto end = (i == threadCount - 1) ? inPlanes.end() : start + chunkSize;
-
-		threads.emplace_back([&, start, end, i] {
-			for (auto &&[_, inPlane] : ranges::subrange(start, end) | views::enumerate) {
-				threadResults[i].push_back(getPolypointPlane(inPlane, basis_in, basis_out));
-			}
-		});
-	}
-
-	std::ranges::for_each(threads, &jthread::join);
-	return collectThreadResults(inPlanes, threadResults);
 }
 
 int main()
@@ -199,19 +168,20 @@ int main()
 	// Make Eigen single-threaded to avoid nested parallelism:
 	Eigen::setNbThreads(1);
 
-	constexpr auto runEachExperement = 3;
+	constexpr int runEachExperement = 3;
 
 	auto currPath = fs::current_path();
 	auto planesFile = currPath.append("in_planes.npy");
-	cout << format("Planes file: {}\n", planesFile.string());
+	cout << std::format("Planes file: {}\n", planesFile.string());
 
 	auto timer = ElapsedTimer{};
 	auto inPlanes = readPlanesBin(planesFile);
 	increasePlanesAount(inPlanes);
 
 	// clang-format off
-	cout << format("Read {} planes in {} seconds\n", inPlanes.size(), timer.elapsedSec());
-	cout << format("Last plane: {} {} {} {}\n", inPlanes.back().a, inPlanes.back().b, inPlanes.back().c, inPlanes.back().d);
+	cout << std::format("Read {} planes in {} seconds\n", inPlanes.size(), timer.elapsedSec());
+	cout << std::format("Last plane: {} {} {} {}\n",
+	                    inPlanes.back().a, inPlanes.back().b, inPlanes.back().c, inPlanes.back().d);
 	cout << endl;
 
 	auto basis_in = vector<Eigen::Vector3d>{
@@ -222,20 +192,19 @@ int main()
 	    {0.2, -0.2, 1.0}, {1.18, 0.78, 1.0}, {1.0, 6.12e-17, 0.0}, {1.0, 1.0, -0.0}};
 	// clang-format on
 
-	// serialApproach(inPlanes, basis_in, basis_out);
-
-	for (size_t threadCount = 1; threadCount <= thread::hardware_concurrency();
-	     /*thread::hardware_concurrency();*/ threadCount++) {
+	const auto maxThreads = omp_get_max_threads();
+	for (size_t threadCount = 1; threadCount <= maxThreads; threadCount++) {
 		std::vector<double> times;
 
 		for (int i = 0; i < runEachExperement; ++i) {
+			omp_set_num_threads(threadCount);
 			ElapsedTimer timer;
-			auto result = threadChunkApproach(inPlanes, basis_in, basis_out, threadCount);
+			auto result = openmpApproach(inPlanes, basis_in, basis_out);
 			times.push_back(timer.elapsedSec());
 		}
 
 		auto elapsedSec = std::accumulate(times.begin(), times.end(), 0.0) / runEachExperement;
-		cout << format("{}; {}; sec", threadCount, elapsedSec) << endl;
+		cout << std::format("{}; {}; sec\n", threadCount, elapsedSec);
 	}
 
 	return 0;
