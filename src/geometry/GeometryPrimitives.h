@@ -15,9 +15,27 @@ using BasisList = std::vector<QVector3D>;
 using LineId = QUuid;
 using LineIdList = std::vector<LineId>;
 
+template<typename T, typename... Rest>
+void hash_combine(std::size_t &seed, const T &v, const Rest &...rest)
+{
+	seed ^= std::hash<T>{}(v) + 0x9e37'79b9 + (seed << 6) + (seed >> 2);
+	(hash_combine(seed, rest), ...);
+}
+
+template<>
+struct std::hash<QVector3D>
+{
+	std::size_t operator()(const QVector3D &v) const noexcept
+	{
+		std::size_t h = 0;
+		hash_combine(h, v.x(), v.y(), v.z());
+		return h;
+	}
+};
+
 struct Line
 {
-	LineId id;
+	QUuid id;
 	QVector3D p1;
 	QVector3D p2;
 
@@ -25,7 +43,19 @@ struct Line
 
 	StreightLine toStraightLine() const;
 
+	// size_t id() const;
 	bool isNull() const;
+};
+
+template<>
+struct std::hash<Line>
+{
+	std::size_t operator()(const Line &l) const noexcept
+	{
+		std::size_t h = 0;
+		hash_combine(h, l.p1);
+		return h;
+	}
 };
 
 struct StreightLine

@@ -99,6 +99,11 @@ StreightLine Line::toStraightLine() const
 	return StreightLine::FromLine(*this);
 }
 
+// size_t Line::id() const
+// {
+// 	return std::hash<Line>{}(*this);
+// }
+
 bool Line::isNull() const
 {
 	return qFuzzyIsNull(p1.distanceToPoint(p2));
