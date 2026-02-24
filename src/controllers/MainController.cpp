@@ -54,7 +54,7 @@ auto elapsedTime = new QElapsedTimer();
 
 MainController::MainController(QObject *parent)
     : QObject(parent)
-    , m_path("C:\\Users\\Ariel\\Documents\\AAScetch\\exp\\Untitled.dae")
+    , m_path("C:\\Users\\Ariel\\Documents\\AAScetch\\exp\\Palianutsia.dae")
     , m_dontTransform(0)
     , m_showOnlyInBasises(m_dontTransform)
 {
@@ -112,11 +112,10 @@ MainController::MainController(QObject *parent)
 	    &MainController::loadComplete,
 	    this,
 	    [this] {
-		    m_resBasises->setData(m_resBasises->index(0), QVector3D{-0.774849 * 3, 3.19947, 0});
-		    m_resBasises->setData(m_resBasises->index(1), QVector3D{-1.25373 * 3, -1.22209, 0});
-		    m_resBasises->setData(m_resBasises->index(2), QVector3D{0.00177962 * 3, -3.95088, 0});
-		    m_resBasises->setData(m_resBasises->index(3), QVector3D{1.25313 * 3, -1.21648, 0});
-		    m_resBasises->setData(m_resBasises->index(4), QVector3D{0.774849 * 3, 3.19947, 0});
+		    m_resBasises->setData(m_resBasises->index(0), QVector3D{0.056007 * 3, 1.89851, 0});
+		    m_resBasises->setData(m_resBasises->index(1), QVector3D{-0.946504 * 3, 1.04667, 0});
+		    m_resBasises->setData(m_resBasises->index(2), QVector3D{-0.560389 * 3, -1.52873, 0});
+		    m_resBasises->setData(m_resBasises->index(3), QVector3D{0.77146 * 3, -2.13141, 0});
 	    },
 	    Qt::QueuedConnection);
 
@@ -386,14 +385,14 @@ void MainController::setMeshType(MeshType meshType)
 
 BasisPointsModel *MainController::inBasisPointsModel() const
 {
-	return {};
+	// return {};
 	return m_origBasises.get();
 }
 
 BasisPointsModel *MainController::outBasisPointsModel() const
 {
-	return {};
-	// return m_tmpBasises;
+	// return {};
+	//  return m_tmpBasises;
 	if (m_showOnlyInBasises) {
 		return {};
 	}
